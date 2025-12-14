@@ -10,6 +10,8 @@ export const createQuestion = async (req, res) => {
       correctOptionIndex,
       points = 100,
       order,
+      durationSeconds,
+      isAiGenerated,
     } = req.body;
 
     if (
@@ -17,7 +19,8 @@ export const createQuestion = async (req, res) => {
       !text ||
       !options ||
       correctOptionIndex === undefined ||
-      order === undefined
+      order === undefined ||
+      !durationSeconds
     ) {
       return res.status(400).json({
         message: "Required fields are missing",
@@ -38,6 +41,8 @@ export const createQuestion = async (req, res) => {
       correctOptionIndex,
       points,
       order,
+      durationSeconds,
+      isAiGenerated,
     });
 
     quiz.totalScore += points;
@@ -45,6 +50,11 @@ export const createQuestion = async (req, res) => {
 
     res.status(201).json(question);
   } catch (error) {
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        message: Object.values(error.errors).map((val) => val.message).join(", "),
+      });
+    }
     res.status(500).json({
       message: "Failed to create question",
       error: error.message,

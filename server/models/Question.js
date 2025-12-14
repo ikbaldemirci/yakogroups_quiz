@@ -21,14 +21,14 @@ const QuestionSchema = new mongoose.Schema(
 
     text: {
       type: String,
-      required: true,
+      required: [true, "Soru metni gereklidir."],
       trim: true,
-      minlength: 3,
+      minlength: [3, "Soru metni en az 3 karakter olmalıdır."],
     },
 
     options: {
       type: [OptionSchema],
-      validate: [(val) => val.length >= 2, "At least two options are required"],
+      validate: [(val) => val.length >= 2, "En az iki seçenek gereklidir."],
     },
 
     correctOptionIndex: {
@@ -41,6 +41,18 @@ const QuestionSchema = new mongoose.Schema(
       type: Number,
       default: 100,
       min: 0,
+    },
+
+    durationSeconds: {
+      type: Number,
+      required: true,
+      min: [5, "Süre en az 5 saniye olmalıdır."],
+      default: 10,
+    },
+
+    isAiGenerated: {
+      type: Boolean,
+      default: false,
     },
 
     order: {

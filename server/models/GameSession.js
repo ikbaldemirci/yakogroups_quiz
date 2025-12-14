@@ -62,6 +62,17 @@ const GameSessionSchema = new mongoose.Schema(
       default: 0,
     },
 
+    currentPhase: {
+      type: String,
+      enum: ["question", "leaderboard", "wheel"],
+      default: "question",
+    },
+
+    currentPresenter: {
+      type: String,
+      default: null,
+    },
+
     players: [PlayerSchema],
 
     startedAt: Date,
