@@ -66,6 +66,25 @@ export const getQuestionsByQuiz = async (req, res) => {
   }
 };
 
+export const getQuestionByQuizAndIndex = async (req, res) => {
+  try {
+    const { quizId, index } = req.params;
+
+    const question = await Question.findOne({
+      quiz: quizId,
+      order: Number(index) + 1,
+    });
+
+    if (!question) {
+      return res.status(404).json({ message: "Question not found" });
+    }
+
+    res.status(200).json(question);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch question" });
+  }
+};
+
 export const updateQuestion = async (req, res) => {
   try {
     const existingQuestion = await Question.findById(req.params.id);

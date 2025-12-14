@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import GameSession from "../models/GameSession.js";
 import Question from "../models/Question.js";
 import { io } from "../index.js";
@@ -13,29 +14,41 @@ export const gameSocket = () => {
 
     socket.on("join-lobby", async ({ lobbyCode, nickname }) => {
       const session = await GameSession.findOne({ lobbyCode });
-      if (!session || session.status !== "waiting") return;
-
-      const exists = session.players.some((p) => p.nickname === nickname);
-      if (exists) return;
-
-      session.players.push({ nickname });
-      await session.save();
+      if (!session) return;
 
       socket.join(lobbyCode);
 
-      io.to(lobbyCode).emit("players-updated", session.players);
+      const exists = session.players.some((p) => p.nickname === nickname);
+
+      if (session.status === "waiting" && !exists) {
+        session.players.push({ nickname, score: 0, answers: [] });
+        await session.save();
+
+        io.to(lobbyCode).emit("players-updated", session.players);
+        return;
+      }
+
+      if (session.status === "active") {
+        socket.emit("players-updated", session.players);
+      }
     });
 
     socket.on("start-game", async ({ lobbyCode }) => {
       const session = await GameSession.findOne({ lobbyCode });
-      if (!session || session.status !== "waiting") return;
+      if (!session) return;
 
-      session.status = "active";
-      session.startedAt = new Date();
-      session.currentQuestionIndex = 0;
-      await session.save();
+      if (session.status === "waiting") {
+        session.status = "active";
+        session.startedAt = new Date();
+        session.currentQuestionIndex = 0;
+        await session.save();
+      }
 
       io.to(lobbyCode).emit("game-started");
+      io.to(lobbyCode).emit(
+        "question-changed",
+        session.currentQuestionIndex ?? 0
+      );
     });
 
     socket.on(
@@ -58,7 +71,6 @@ export const gameSocket = () => {
         if (!player) return;
 
         const isCorrect = question.correctOptionIndex === selectedOptionIndex;
-
         const earnedScore = isCorrect
           ? calculateScore(question.points, remainingTime, totalTime)
           : 0;
@@ -80,12 +92,41 @@ export const gameSocket = () => {
           earnedScore,
           isCorrect,
         });
+
+        const totalQuestions = await Question.countDocuments({
+          quiz: session.quiz,
+        });
+
+        if (session.currentQuestionIndex + 1 >= totalQuestions) {
+          session.status = "finished";
+          session.finishedAt = new Date();
+          await session.save();
+
+          io.to(lobbyCode).emit("game-finished", {
+            leaderboard: [...session.players].sort((a, b) => b.score - a.score),
+          });
+        }
       }
     );
 
     socket.on("next-question", async ({ lobbyCode }) => {
       const session = await GameSession.findOne({ lobbyCode });
       if (!session) return;
+
+      const totalQuestions = await Question.countDocuments({
+        quiz: session.quiz,
+      });
+
+      if (session.currentQuestionIndex + 1 >= totalQuestions) {
+        session.status = "finished";
+        session.finishedAt = new Date();
+        await session.save();
+
+        io.to(lobbyCode).emit("game-finished", {
+          leaderboard: [...session.players].sort((a, b) => b.score - a.score),
+        });
+        return;
+      }
 
       session.currentQuestionIndex += 1;
       await session.save();

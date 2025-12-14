@@ -184,3 +184,23 @@ export const finishGame = async (req, res) => {
     });
   }
 };
+
+export const getGameSessionByLobbyCode = async (req, res) => {
+  try {
+    const { lobbyCode } = req.params;
+
+    const session = await GameSession.findOne({ lobbyCode });
+
+    if (!session) {
+      return res.status(404).json({
+        message: "Game session not found",
+      });
+    }
+
+    res.status(200).json(session);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch game session",
+    });
+  }
+};
