@@ -16,6 +16,8 @@ export default function AdminDashboard() {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
 
+  //deneme
+
   useEffect(() => {
     fetch("http://localhost:5000/api/quizzes")
       .then((res) => res.json())
