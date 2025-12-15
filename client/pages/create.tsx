@@ -178,7 +178,7 @@ export default function CreateQuiz() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans p-8">
+    <div className="min-h-screen bg-gray-100 text-gray-900 font-sans flex flex-col">
       <div className="max-w-4xl mx-auto bg-white shadow-xl rounded-lg overflow-hidden">
         <div className="bg-indigo-600 p-6">
           <h1 className="text-2xl font-bold text-white">Yeni Sınav Oluştur</h1>
@@ -187,7 +187,7 @@ export default function CreateQuiz() {
           </p>
         </div>
 
-        <div className="p-8 space-y-8">
+        <div className="p-8 space-y-8 flex-1 overflow-y-auto">
           {error && (
             <div className="bg-red-100 text-red-700 p-4 rounded-md">
               {error}
@@ -254,15 +254,10 @@ export default function CreateQuiz() {
           </section>
 
           <section className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-gray-800">Sorular</h2>
-              <button
-                onClick={addQuestion}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors text-sm font-medium"
-              >
-                + Soru Ekle
-              </button>
-            </div>
+           <div className="flex items-center">
+            <h2 className="text-xl font-semibold text-gray-800">Sorular</h2>
+          </div>
+
 
             {questions.map((q, qIndex) => (
               <div
@@ -377,17 +372,34 @@ export default function CreateQuiz() {
             ))}
           </section>
 
-          <div className="flex justify-end pt-6 border-t border-gray-200">
+                  <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 flex justify-between items-center shadow-lg">
+          <button
+            onClick={addQuestion}
+            className="bg-indigo-600 text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition-colors font-medium"
+          >
+            + Yeni Soru Ekle
+          </button>
+
+          <div className="flex gap-4">
+            <button
+              onClick={() => router.push("/admin")}
+              className="bg-gray-200 text-gray-700 px-6 py-3 rounded-md hover:bg-gray-300 transition-colors font-medium"
+            >
+              Vazgeç
+            </button>
+
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className={`bg-green-600 text-white px-8 py-3 rounded-md hover:bg-green-700 transition-colors font-semibold shadow-lg ${
+              className={`bg-green-600 text-white px-8 py-3 rounded-md hover:bg-green-700 transition-colors font-semibold shadow ${
                 loading ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
-              {loading ? "Kaydediliyor..." : "Sınavı Kaydet ve Oluştur"}
+              {loading ? "Kaydediliyor..." : "Kaydet ve Oluştur"}
             </button>
           </div>
+        </div>
+
         </div>
       </div>
     </div>
