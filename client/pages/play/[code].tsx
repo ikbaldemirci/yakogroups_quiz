@@ -14,6 +14,7 @@ interface Question {
   text: string;
   options: Option[];
   durationSeconds: number;
+  image?: string;
 }
 
 interface GameState {
@@ -197,11 +198,10 @@ export default function PlayerGame() {
           {leaderboard.slice(0, 10).map((p, i) => (
             <div
               key={i}
-              className={`flex justify-between py-2 ${
-                p.nickname === gameState.nickname
-                  ? "text-yellow-400 font-bold"
-                  : "text-gray-300"
-              }`}
+              className={`flex justify-between py-2 ${p.nickname === gameState.nickname
+                ? "text-yellow-400 font-bold"
+                : "text-gray-300"
+                }`}
             >
               <span>
                 #{i + 1} {p.nickname}
@@ -227,9 +227,8 @@ export default function PlayerGame() {
 
         <div className="relative">
           <div
-            className={`w-64 h-64 rounded-full border-8 border-yellow-400 bg-conic-gradient flex items-center justify-center shadow-2xl ${
-              isSpinning ? "animate-spin-fast" : ""
-            }`}
+            className={`w-64 h-64 rounded-full border-8 border-yellow-400 bg-conic-gradient flex items-center justify-center shadow-2xl ${isSpinning ? "animate-spin-fast" : ""
+              }`}
           >
             <span className="text-4xl">🎡</span>
           </div>
@@ -267,23 +266,21 @@ export default function PlayerGame() {
           {leaderboard.map((p, i) => (
             <div
               key={i}
-              className={`flex items-center justify-between p-4 rounded-xl shadow-md transform transition-all ${
-                p.nickname === gameState.nickname
-                  ? "bg-gradient-to-r from-yellow-500 to-orange-500 scale-105 border-2 border-white"
-                  : "bg-white/10"
-              }`}
+              className={`flex items-center justify-between p-4 rounded-xl shadow-md transform transition-all ${p.nickname === gameState.nickname
+                ? "bg-gradient-to-r from-yellow-500 to-orange-500 scale-105 border-2 border-white"
+                : "bg-white/10"
+                }`}
             >
               <div className="flex items-center gap-4">
                 <span
-                  className={`flex items-center justify-center w-8 h-8 rounded-full font-bold ${
-                    i === 0
-                      ? "bg-yellow-300 text-yellow-900"
-                      : i === 1
+                  className={`flex items-center justify-center w-8 h-8 rounded-full font-bold ${i === 0
+                    ? "bg-yellow-300 text-yellow-900"
+                    : i === 1
                       ? "bg-gray-300 text-gray-900"
                       : i === 2
-                      ? "bg-orange-300 text-orange-900"
-                      : "bg-blue-800"
-                  }`}
+                        ? "bg-orange-300 text-orange-900"
+                        : "bg-blue-800"
+                    }`}
                 >
                   {i + 1}
                 </span>
@@ -307,17 +304,25 @@ export default function PlayerGame() {
         <div
           className="h-full bg-indigo-600 transition-all duration-1000 ease-linear"
           style={{
-            width: `${
-              currentQuestion
-                ? (timer / currentQuestion.durationSeconds) * 100
-                : 0
-            }%`,
+            width: `${currentQuestion
+              ? (timer / currentQuestion.durationSeconds) * 100
+              : 0
+              }%`,
           }}
         ></div>
       </div>
 
       <div className="flex-1 p-6 flex flex-col items-center justify-center max-w-3xl mx-auto w-full">
         <div className="mb-8 text-center">
+          {currentQuestion?.image && (
+            <div className="mb-6 flex justify-center">
+              <img
+                src={`http://localhost:5000${currentQuestion.image}`}
+                alt="Soru Görseli"
+                className="max-h-64 rounded-lg shadow-md object-contain"
+              />
+            </div>
+          )}
           <span className="inline-block bg-indigo-100 text-indigo-700 font-bold px-3 py-1 rounded-full text-sm mb-4">
             {timer} Saniye
           </span>
@@ -332,15 +337,13 @@ export default function PlayerGame() {
               key={i}
               disabled={selectedOption !== null || timer === 0}
               onClick={() => submitAnswer(i)}
-              className={`p-6 rounded-xl text-lg font-bold text-left transition-all transform shadow-sm border-2 ${
-                selectedOption === i
-                  ? "bg-indigo-600 text-white border-indigo-600 scale-95"
-                  : "bg-white text-slate-700 border-gray-200 hover:border-indigo-300 hover:shadow-md active:scale-95"
-              } ${
-                selectedOption !== null && selectedOption !== i
+              className={`p-6 rounded-xl text-lg font-bold text-left transition-all transform shadow-sm border-2 ${selectedOption === i
+                ? "bg-indigo-600 text-white border-indigo-600 scale-95"
+                : "bg-white text-slate-700 border-gray-200 hover:border-indigo-300 hover:shadow-md active:scale-95"
+                } ${selectedOption !== null && selectedOption !== i
                   ? "opacity-50"
                   : ""
-              }`}
+                }`}
             >
               <span className="inline-block w-8">
                 {String.fromCharCode(65 + i)}.

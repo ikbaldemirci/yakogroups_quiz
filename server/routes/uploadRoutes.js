@@ -7,9 +7,11 @@ const router = express.Router();
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = "uploads/";
+    const type = req.query.type || "others";
+    const uploadDir = path.join("uploads", type);
+
     if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir);
+      fs.mkdirSync(uploadDir, { recursive: true });
     }
     cb(null, uploadDir);
   },
@@ -40,7 +42,8 @@ router.post("/", upload.single("file"), (req, res) => {
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
     }
-    const fileUrl = `/uploads/${req.file.filename}`;
+    const type = req.query.type || "others";
+    const fileUrl = `/uploads/${type}/${req.file.filename}`;
     res.status(200).json({ url: fileUrl });
   } catch (error) {
     res.status(500).json({ message: "Upload failed", error: error.message });

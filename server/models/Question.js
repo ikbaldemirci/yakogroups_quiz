@@ -55,6 +55,11 @@ const QuestionSchema = new mongoose.Schema(
       default: false,
     },
 
+    image: {
+      type: String,
+      default: null,
+    },
+
     order: {
       type: Number,
       required: true,

@@ -16,8 +16,6 @@ export default function AdminDashboard() {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
 
-  //deneme
-
   useEffect(() => {
     fetch("http://localhost:5000/api/quizzes")
       .then((res) => res.json())
@@ -127,12 +125,35 @@ export default function AdminDashboard() {
                   </span>
                 </div>
 
-                <button
-                  onClick={() => createSession(quiz._id)}
-                  className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition font-medium"
-                >
-                  Oturum Başlat (Lobby)
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => createSession(quiz._id)}
+                    className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition font-medium"
+                  >
+                    Oturum Başlat
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (!confirm("Bu sınavı kalıcı olarak silmek istediğine emin misin?")) return;
+                      try {
+                        const res = await fetch(`http://localhost:5000/api/quizzes/hard/${quiz._id}`, {
+                          method: "DELETE",
+                        });
+                        if (res.ok) {
+                          setQuizzes(quizzes.filter((q) => q._id !== quiz._id));
+                        } else {
+                          alert("Silme işlemi başarısız oldu.");
+                        }
+                      } catch (err) {
+                        console.error(err);
+                      }
+                    }}
+                    className="bg-red-100 text-red-600 px-3 rounded-lg hover:bg-red-200 transition"
+                    title="Sınavı Sil"
+                  >
+                    🗑️
+                  </button>
+                </div>
               </div>
             </div>
           ))

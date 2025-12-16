@@ -12,6 +12,7 @@ export const createQuestion = async (req, res) => {
       order,
       durationSeconds,
       isAiGenerated,
+      image,
     } = req.body;
 
     if (
@@ -43,6 +44,7 @@ export const createQuestion = async (req, res) => {
       order,
       durationSeconds,
       isAiGenerated,
+      image,
     });
 
     quiz.totalScore += points;

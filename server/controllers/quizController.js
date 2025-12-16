@@ -1,4 +1,5 @@
 import Quiz from "../models/Quiz.js";
+import Question from "../models/Question.js";
 
 export const createQuiz = async (req, res) => {
   try {
@@ -15,7 +16,31 @@ export const createQuiz = async (req, res) => {
       description,
       coverImage,
       durationMinutes,
+      totalScore: 0,
     });
+
+    if (req.body.questions && Array.isArray(req.body.questions)) {
+      let totalScore = 0;
+      const questionsToCreate = req.body.questions.map((q) => {
+        totalScore += q.points || 100;
+        return {
+          quiz: quiz._id,
+          text: q.text,
+          options: q.options,
+          correctOptionIndex: q.correctOptionIndex,
+          points: q.points || 100,
+          order: q.order,
+          durationSeconds: q.durationSeconds,
+          isAiGenerated: q.isAiGenerated || false,
+          image: q.image || null,
+        };
+      });
+
+      await Question.insertMany(questionsToCreate);
+
+      quiz.totalScore = totalScore;
+      await quiz.save();
+    }
 
     res.status(201).json(quiz);
   } catch (error) {

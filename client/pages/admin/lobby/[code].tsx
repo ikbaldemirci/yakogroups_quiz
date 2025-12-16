@@ -14,6 +14,7 @@ interface GameState {
   players: Player[];
   currentQuestionText?: string;
   wheelWinner?: string;
+  currentQuestionImage?: string;
 }
 
 let socket: Socket;
@@ -53,11 +54,14 @@ export default function AdminLobby() {
         ? data.question.text
         : `Soru ${data + 1} (Yükleniyor...)`;
 
+      const qImage = data.question?.image;
+
       setCurrentQuestionText(qText);
       setGameState((prev) => ({
         ...prev,
         currentPhase: "question",
         currentQuestionIndex: typeof data === "number" ? data : data.index,
+        currentQuestionImage: qImage,
       }));
       setWheelWinner("");
     });
@@ -150,11 +154,10 @@ export default function AdminLobby() {
             <button
               onClick={startGame}
               disabled={gameState.players.length === 0}
-              className={`text-2xl px-12 py-6 rounded-xl font-bold transition-transform hover:scale-105 shadow-2xl ${
-                gameState.players.length === 0
-                  ? "bg-slate-700 text-slate-500 cursor-not-allowed"
-                  : "bg-green-500 text-white hover:bg-green-400"
-              }`}
+              className={`text-2xl px-12 py-6 rounded-xl font-bold transition-transform hover:scale-105 shadow-2xl ${gameState.players.length === 0
+                ? "bg-slate-700 text-slate-500 cursor-not-allowed"
+                : "bg-green-500 text-white hover:bg-green-400"
+                }`}
             >
               Yarışmayı Başlat
             </button>
@@ -224,6 +227,15 @@ export default function AdminLobby() {
                   <span className="bg-yellow-500 text-black px-3 py-1 rounded text-sm font-bold mb-4 inline-block">
                     SORU EKRANI
                   </span>
+                  {gameState.currentQuestionImage && (
+                    <div className="mb-4 flex justify-center">
+                      <img
+                        src={`http://localhost:5000${gameState.currentQuestionImage}`}
+                        alt="Soru Görseli"
+                        className="max-h-48 rounded-lg shadow-sm object-contain bg-white"
+                      />
+                    </div>
+                  )}
                   <h2 className="text-3xl font-bold">{currentQuestionText}</h2>
                   <p className="text-slate-500 mt-4">Oyuncular cevaplıyor...</p>
                 </div>
