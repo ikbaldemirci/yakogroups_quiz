@@ -56,7 +56,7 @@ export default function EditQuiz() {
                     setCoverPreview(`http://localhost:5000${quiz.coverImage}`);
                 }
 
-                const qRes = await fetch(`http://localhost:5000/api/questions/${id}`);
+                const qRes = await fetch(`http://localhost:5000/api/questions?quizId=${id}`);
                 if (qRes.ok) {
                     const fetchedQuestions = await qRes.json();
                     const mappedQuestions = fetchedQuestions.map((q: any) => ({

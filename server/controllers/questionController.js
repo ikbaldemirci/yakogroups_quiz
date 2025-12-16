@@ -66,17 +66,23 @@ export const createQuestion = async (req, res) => {
 
 export const getQuestionsByQuiz = async (req, res) => {
   try {
-    const { quizId } = req.params;
+    const quizId = req.query.quizId || req.params.quizId;
 
-    const questions = await Question.find({ quiz: quizId }).sort({ order: 1 });
+    if (!quizId) {
+      return res.status(400).json({ message: "quizId gerekli" });
+    }
 
-    res.status(200).json(questions);
-  } catch (error) {
-    res.status(500).json({
-      message: "Failed to fetch questions",
-    });
+    const questions = await Question
+      .find({ quiz: quizId })
+      .sort({ order: 1 });
+
+    res.json(questions);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Sorular alınamadı" });
   }
 };
+
 
 export const getQuestionByQuizAndIndex = async (req, res) => {
   try {

@@ -1,4 +1,5 @@
 import express from "express";
+
 import {
   createQuestion,
   getQuestionsByQuiz,
@@ -9,6 +10,7 @@ import {
 
 const router = express.Router();
 
+router.get("/", getQuestionsByQuiz);
 router.post("/", createQuestion);
 router.get("/quiz/:quizId", getQuestionsByQuiz);
 router.get("/:quizId/:index", getQuestionByQuizAndIndex);
