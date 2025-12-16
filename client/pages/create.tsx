@@ -345,16 +345,30 @@ export default function CreateQuiz() {
                               </button>
                             )}
                           </div>
+                          <div className="mb-4">
+                            <input
+                              type="text"
+                              value={q.text}
+                              onChange={(e) =>
+                                handleQuestionChange(qIndex, "text", e.target.value)
+                              }
+                              placeholder="Soruyu buraya yazın..."
+                              className="w-full mb-5 rounded-lg border border-gray-300 px-4 py-3"
+                            />
+                          </div>
 
-                          <input
-                            type="text"
-                            value={q.text}
-                            onChange={(e) =>
-                              handleQuestionChange(qIndex, "text", e.target.value)
-                            }
-                            placeholder="Soruyu buraya yazın..."
-                            className="w-full mb-5 rounded-lg border border-gray-300 px-4 py-3"
-                          />
+                          <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Soru Görseli (İsteğe Bağlı)
+                              </label>
+                              <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleImageChange(qIndex, e.target.files ? e.target.files[0] : null)}
+                              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                              />
+                              {q.imageFile && <p className="text-xs text-green-600 mt-1">Seçilen: {q.imageFile.name}</p>}
+                          </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
                             {q.options.map((opt, oIndex) => (
@@ -415,7 +429,7 @@ export default function CreateQuiz() {
                                   )
                                 }
                               />
-                              AI tarafından oluşturuldu
+                              AI tarafından oluşturuldu (Çarkıfelek Gelsin)
                             </label>
                           </div>
                         </div>
