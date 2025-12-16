@@ -132,6 +132,13 @@ export default function AdminDashboard() {
                   >
                     Oturum Başlat
                   </button>
+                  <Link
+                    href={`/edit/${quiz._id}`}
+                    className="bg-indigo-100 text-indigo-600 px-3 py-2 rounded-lg hover:bg-indigo-200 transition flex items-center justify-center"
+                    title="Düzenle"
+                  >
+                    ✏️
+                  </Link>
                   <button
                     onClick={async () => {
                       if (!confirm("Bu sınavı kalıcı olarak silmek istediğine emin misin?")) return;

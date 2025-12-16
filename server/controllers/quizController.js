@@ -96,6 +96,31 @@ export const updateQuiz = async (req, res) => {
       });
     }
 
+    if (req.body.questions && Array.isArray(req.body.questions)) {
+      await Question.deleteMany({ quiz: quiz._id });
+
+      let totalScore = 0;
+      const questionsToCreate = req.body.questions.map((q) => {
+        totalScore += q.points || 100;
+        return {
+          quiz: quiz._id,
+          text: q.text,
+          options: q.options,
+          correctOptionIndex: q.correctOptionIndex,
+          points: q.points || 100,
+          order: q.order,
+          durationSeconds: q.durationSeconds,
+          isAiGenerated: q.isAiGenerated || false,
+          image: q.image || null,
+        };
+      });
+
+      await Question.insertMany(questionsToCreate);
+
+      quiz.totalScore = totalScore;
+      await quiz.save();
+    }
+
     res.status(200).json(quiz);
   } catch (error) {
     res.status(500).json({
