@@ -1,6 +1,9 @@
 import { useRouter } from "next/router";
 import { useEffect, useState, useRef } from "react";
 import { io, Socket } from "socket.io-client";
+import dynamic from "next/dynamic";
+
+const WheelComponent = dynamic(() => import("../../components/WheelComponent"), { ssr: false });
 
 let socket: Socket;
 
@@ -15,13 +18,16 @@ interface Question {
   options: Option[];
   durationSeconds: number;
   image?: string;
+  isAiGenerated?: boolean;
 }
+
 
 interface GameState {
   status: "waiting" | "active" | "finished";
   currentPhase: "question" | "leaderboard" | "wheel";
   score: number;
   nickname: string;
+  players?: any[];
 }
 
 export default function PlayerGame() {
@@ -46,7 +52,7 @@ export default function PlayerGame() {
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [wheelWinner, setWheelWinner] = useState("");
 
-  const [isSpinning, setIsSpinning] = useState(false);
+  const [wheelWinnerShown, setWheelWinnerShown] = useState(false);
 
   useEffect(() => {
     if (!lobbyCode) return;
@@ -61,6 +67,11 @@ export default function PlayerGame() {
       setGameState((prev) => ({ ...prev, status: "active" }));
     });
 
+    socket.on("players-updated", (players: any[]) => {
+      setGameState((prev) => ({ ...prev, players }));
+    });
+
+
     socket.on("question-changed", (data: any) => {
       setGameState((prev) => ({ ...prev, currentPhase: "question" }));
       setCurrentQuestion(data.question);
@@ -71,12 +82,11 @@ export default function PlayerGame() {
 
     socket.on("show-wheel", () => {
       setGameState((prev) => ({ ...prev, currentPhase: "wheel" }));
-      setIsSpinning(true);
     });
 
     socket.on("wheel-result", ({ winner }) => {
-      setIsSpinning(false);
       setWheelWinner(winner);
+      setWheelWinnerShown(false);
     });
 
     socket.on("show-leaderboard", (data: any) => {
@@ -226,19 +236,16 @@ export default function PlayerGame() {
         </h2>
 
         <div className="relative">
-          <div
-            className={`w-64 h-64 rounded-full border-8 border-yellow-400 bg-conic-gradient flex items-center justify-center shadow-2xl ${isSpinning ? "animate-spin-fast" : ""
-              }`}
-          >
-            <span className="text-4xl">🎡</span>
-          </div>
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 -mt-4 text-4xl text-white">
-            ▼
-          </div>
+          <WheelComponent
+            players={gameState.players || []}
+            winner={wheelWinner || null}
+            spinning={!!wheelWinner && !wheelWinnerShown}
+            onStopSpinning={() => setWheelWinnerShown(true)}
+          />
         </div>
 
         <div className="mt-12 text-center h-20 z-10">
-          {wheelWinner ? (
+          {wheelWinner && wheelWinnerShown ? (
             <div className="animate-bounce">
               <p className="text-purple-200">Seçilen Kişi:</p>
               <h1 className="text-5xl font-extrabold text-white mt-2 drop-shadow-lg">
@@ -247,7 +254,7 @@ export default function PlayerGame() {
             </div>
           ) : (
             <p className="text-xl text-purple-300 animate-pulse">
-              Kader çarkı dönüyor...
+              {!wheelWinner ? "Kader çarkı dönüyor..." : "Çark dönüyor..."}
             </p>
           )}
         </div>

@@ -1,6 +1,9 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
+import dynamic from "next/dynamic";
+
+const WheelComponent = dynamic(() => import("../../../components/WheelComponent"), { ssr: false });
 
 interface Player {
   nickname: string;
@@ -33,6 +36,7 @@ export default function AdminLobby() {
 
   const [currentQuestionText, setCurrentQuestionText] = useState("");
   const [wheelWinner, setWheelWinner] = useState("");
+  const [wheelWinnerShown, setWheelWinnerShown] = useState(false);
 
   useEffect(() => {
     if (!lobbyCode) return;
@@ -76,6 +80,7 @@ export default function AdminLobby() {
 
     socket.on("wheel-result", ({ winner }) => {
       setWheelWinner(winner);
+      setWheelWinnerShown(false);
     });
 
     socket.on("game-finished", () => {
@@ -209,12 +214,14 @@ export default function AdminLobby() {
                         Çarkı Çevir!
                       </button>
                     ) : (
-                      <button
-                        onClick={startQuestionAfterWheel}
-                        className="w-full bg-green-600 hover:bg-green-500 py-4 rounded-lg font-bold text-lg transition-colors"
-                      >
-                        Soruyu Başlat
-                      </button>
+                      wheelWinnerShown && (
+                        <button
+                          onClick={startQuestionAfterWheel}
+                          className="w-full bg-green-600 hover:bg-green-500 py-4 rounded-lg font-bold text-lg transition-colors"
+                        >
+                          Soruyu Başlat
+                        </button>
+                      )
                     )}
                   </div>
                 )}
@@ -251,11 +258,19 @@ export default function AdminLobby() {
               )}
 
               {gameState.currentPhase === "wheel" && (
-                <div className="text-center">
+                <div className="text-center flex flex-col items-center">
                   <h2 className="text-3xl font-bold text-purple-400 mb-6">
                     Çarkıfelek Zamanı!
                   </h2>
-                  {wheelWinner ? (
+                  <div className="mb-6">
+                    <WheelComponent
+                      players={gameState.players}
+                      winner={wheelWinner || null}
+                      spinning={!!wheelWinner && !wheelWinnerShown}
+                      onStopSpinning={() => setWheelWinnerShown(true)}
+                    />
+                  </div>
+                  {wheelWinner && wheelWinnerShown ? (
                     <div className="animate-bounce">
                       <p className="text-slate-400">Seçilen Kişi:</p>
                       <p className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 mt-2">
@@ -264,7 +279,7 @@ export default function AdminLobby() {
                     </div>
                   ) : (
                     <p className="text-slate-500 animate-pulse">
-                      Çark çevriliyor...
+                      {!wheelWinner ? "Çarkı çevirmek için butona basın..." : "Çark dönüyor..."}
                     </p>
                   )}
                 </div>
@@ -287,6 +302,6 @@ export default function AdminLobby() {
           </div>
         )}
       </div>
-    </div>
+    </div >
   );
 }
