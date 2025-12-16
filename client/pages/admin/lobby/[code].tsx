@@ -39,7 +39,7 @@ export default function AdminLobby() {
 
     socket = io("http://localhost:5000");
 
-    socket.emit("join-lobby", { lobbyCode, nickname: "ADMIN_OBSERVER" });
+    socket.emit("join-lobby", { lobbyCode, nickname: "ADMIN_OBSERVER", isAdmin: true });
 
     socket.on("players-updated", (players: Player[]) => {
       setGameState((prev) => ({ ...prev, players }));

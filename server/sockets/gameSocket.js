@@ -19,11 +19,24 @@ export const gameSocket = () => {
       return questions[session.currentQuestionIndex];
     };
 
-    socket.on("join-lobby", async ({ lobbyCode, nickname }) => {
+    socket.on("join-lobby", async ({ lobbyCode, nickname, isAdmin }) => {
       const session = await GameSession.findOne({ lobbyCode });
       if (!session) return;
 
       socket.join(lobbyCode);
+
+      if (isAdmin) {
+        io.to(socket.id).emit("players-updated", session.players);
+        if (session.status !== "waiting") {
+          io.to(socket.id).emit("game-state-sync", {
+            status: session.status,
+            currentPhase: session.currentPhase,
+            currentQuestionIndex: session.currentQuestionIndex,
+            currentPresenter: session.currentPresenter,
+          });
+        }
+        return;
+      }
 
       const exists = session.players.some((p) => p.nickname === nickname);
 
