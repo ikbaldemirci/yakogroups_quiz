@@ -1,6 +1,13 @@
 import { useState, ChangeEvent } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "@hello-pangea/dnd";
+
 
 interface Option {
   text: string;
@@ -26,6 +33,8 @@ export default function CreateQuiz() {
   const [quizDescription, setQuizDescription] = useState("");
   const [quizDuration, setQuizDuration] = useState(30);
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+
 
   const [questions, setQuestions] = useState<Question[]>([
     {
@@ -37,6 +46,22 @@ export default function CreateQuiz() {
       order: 1,
     },
   ]);
+
+  const handleDragEnd = (result: DropResult) => {
+  if (!result.destination) return;
+
+  const items = Array.from(questions);
+  const [moved] = items.splice(result.source.index, 1);
+  items.splice(result.destination.index, 0, moved);
+
+  const reOrdered = items.map((q, i) => ({
+    ...q,
+    order: i + 1,
+  }));
+
+  setQuestions(reOrdered);
+};
+
 
   const handleQuestionChange = (
     index: number,
@@ -174,226 +199,259 @@ export default function CreateQuiz() {
   };
   
 
-return (
-  <div className="min-h-screen bg-gray-50 text-gray-900 font-sans p-8">
-    <div className="max-w-4xl mx-auto bg-white shadow-xl rounded-lg overflow-hidden">
-      <div className="bg-indigo-600 p-6">
-        <h1 className="text-2xl font-bold text-white">Yeni Sınav Oluştur</h1>
-        <p className="text-indigo-100 mt-2">
-          Şirketiniz için özel bir yarışma hazırlayın.
+ return (
+  <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 text-gray-900 font-sans flex flex-col">
+    <div className="max-w-5xl mx-auto w-full bg-white shadow-2xl rounded-2xl overflow-hidden mt-10 mb-24">
+
+      <div className="bg-gradient-to-r from-indigo-600 to-violet-600 px-10 py-8">
+        <h1 className="text-3xl font-semibold text-white tracking-tight">
+          Yeni Sınav Oluştur
+        </h1>
+        <p className="text-indigo-100 mt-2 max-w-2xl text-sm">
+          Kurumunuza özel, markalı ve etkileşimli bir quiz deneyimi tasarlayın.
         </p>
       </div>
 
-      <div className="p-8 space-y-8">
+      <div className="p-10 space-y-12">
         {error && (
-          <div className="bg-red-100 text-red-700 p-4 rounded-md">
+          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg text-sm">
             {error}
           </div>
         )}
 
-        <section className="space-y-4 border-b pb-8 border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800">
+        <section className="space-y-6">
+          <h2 className="text-lg font-semibold text-gray-900">
             Genel Bilgiler
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Sınav Adı
               </label>
               <input
                 type="text"
                 value={quizTitle}
                 onChange={(e) => setQuizTitle(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                placeholder="Örn: YakoGroups Genel Kültür Yarışması"
+                placeholder="Örn: 2025 Kurum İçi Bilgi Yarışması"
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Şirket Logosu
               </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) =>
-                  setCoverImageFile(e.target.files ? e.target.files[0] : null)
-                }
-                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-              />
+
+              <label className="flex flex-col items-center justify-center w-full h-44 rounded-xl
+              border-2 border-dashed border-indigo-300 bg-indigo-50 hover:bg-indigo-100
+              transition cursor-pointer text-center relative overflow-hidden">
+
+                {coverPreview ? (
+                  <img
+                    src={coverPreview}
+                    alt="Şirket logosu önizleme"
+                    className="object-contain h-full w-full p-4 bg-white"
+                  />
+                ) : (
+                  <>
+                    <span className="text-indigo-700 font-medium">
+                      Logo yüklemek için tıklayın
+                    </span>
+                    <span className="text-xs text-gray-500 mt-1">
+                      PNG veya JPG • Maks. 2MB
+                    </span>
+                  </>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+
+                    setCoverImageFile(file);
+                    setCoverPreview(URL.createObjectURL(file));
+                  }}
+
+                  className="hidden"
+                />
+              </label>
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Açıklama
               </label>
               <textarea
                 value={quizDescription}
                 onChange={(e) => setQuizDescription(e.target.value)}
-                rows={3}
-                className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                placeholder="Yarışma hakkında kısa bilgi..."
+                rows={4}
+                placeholder="Bu yarışmanın amacı ve kapsamı..."
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tahmini Toplam Süre (Dakika)
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Tahmini Toplam Süre (dk)
               </label>
               <input
                 type="number"
                 value={quizDuration}
                 onChange={(e) => setQuizDuration(Number(e.target.value))}
-                className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                className="w-40 rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
               />
             </div>
           </div>
         </section>
 
-        <section className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-gray-800">Sorular</h2>
-            <button
-              onClick={addQuestion}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors text-sm font-medium"
-            >
-              + Soru Ekle
-            </button>
-          </div>
+        <section className="space-y-8">
+          <h2 className="text-lg font-semibold text-gray-900">
+            Sorular
+          </h2>
 
-          {questions.map((q, qIndex) => (
-            <div
-              key={qIndex}
-              className="bg-gray-50 p-6 rounded-lg border border-gray-200 relative group"
-            >
-              <div className="absolute top-4 right-4 flex gap-2">
-                <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">
-                  Soru {qIndex + 1}
-                </span>
-                {questions.length > 1 && (
-                  <button
-                    onClick={() => removeQuestion(qIndex)}
-                    className="text-red-500 hover:text-red-700 text-sm font-medium"
-                  >
-                    Sil
-                  </button>
-                )}
-              </div>
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <Droppable droppableId="questions">
+              {(provided) => (
+                <div
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  className="space-y-8"
+                >
+                  {questions.map((q, qIndex) => (
+                    <Draggable
+                      key={`question-${qIndex}`}
+                      draggableId={`question-${qIndex}`}
+                      index={qIndex}
+                    >
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition cursor-move p-6 relative"
+                        >
+                          <div className="flex justify-between items-center mb-4">
+                            <span className="text-xs font-medium bg-gray-100 px-3 py-1 rounded-full">
+                              Soru {q.order}
+                            </span>
+                            {questions.length > 1 && (
+                              <button
+                                onClick={() => removeQuestion(qIndex)}
+                                className="text-sm text-red-500 hover:text-red-700"
+                              >
+                                Sil
+                              </button>
+                            )}
+                          </div>
 
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Soru Metni
-                </label>
-                <input
-                  type="text"
-                  value={q.text}
-                  onChange={(e) =>
-                    handleQuestionChange(qIndex, "text", e.target.value)
-                  }
-                  className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  placeholder="Sorunuzu buraya yazın..."
-                />
-              </div>
+                          <input
+                            type="text"
+                            value={q.text}
+                            onChange={(e) =>
+                              handleQuestionChange(qIndex, "text", e.target.value)
+                            }
+                            placeholder="Soruyu buraya yazın..."
+                            className="w-full mb-5 rounded-lg border border-gray-300 px-4 py-3"
+                          />
 
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Soru Görseli (İsteğe Bağlı)
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleImageChange(qIndex, e.target.files ? e.target.files[0] : null)}
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-                />
-                {q.imageFile && <p className="text-xs text-green-600 mt-1">Seçilen: {q.imageFile.name}</p>}
-              </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                            {q.options.map((opt, oIndex) => (
+                              <label key={oIndex} className="flex items-center gap-3">
+                                <input
+                                  type="radio"
+                                  name={`correct-${qIndex}`}
+                                  checked={q.correctOptionIndex === oIndex}
+                                  onChange={() =>
+                                    handleQuestionChange(
+                                      qIndex,
+                                      "correctOptionIndex",
+                                      oIndex
+                                    )
+                                  }
+                                />
+                                <input
+                                  type="text"
+                                  value={opt.text}
+                                  onChange={(e) =>
+                                    handleOptionChange(
+                                      qIndex,
+                                      oIndex,
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder={`Şık ${String.fromCharCode(65 + oIndex)}`}
+                                  className="flex-1 rounded-lg border border-gray-300 px-3 py-2"
+                                />
+                              </label>
+                            ))}
+                          </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                {q.options.map((opt, oIndex) => (
-                  <div key={oIndex} className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name={`correct-${qIndex}`}
-                      checked={q.correctOptionIndex === oIndex}
-                      onChange={() =>
-                        handleQuestionChange(
-                          qIndex,
-                          "correctOptionIndex",
-                          oIndex
-                        )
-                      }
-                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
-                    />
-                    <input
-                      type="text"
-                      value={opt.text}
-                      onChange={(e) =>
-                        handleOptionChange(qIndex, oIndex, e.target.value)
-                      }
-                      className={`w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:outline-none ${q.correctOptionIndex === oIndex
-                        ? "border-green-500 ring-1 ring-green-500 bg-green-50"
-                        : "border-gray-300 focus:ring-indigo-500"
-                        }`}
-                      placeholder={`${String.fromCharCode(
-                        65 + oIndex
-                      )} Şıkkı`}
-                    />
-                  </div>
-                ))}
-              </div>
+                          <div className="flex items-center gap-6 border-t pt-4">
+                            <input
+                              type="number"
+                              min={5}
+                              value={q.durationSeconds}
+                              onChange={(e) =>
+                                handleQuestionChange(
+                                  qIndex,
+                                  "durationSeconds",
+                                  Number(e.target.value)
+                                )
+                              }
+                              className="w-28 rounded-lg border border-gray-300 px-3 py-2"
+                            />
 
-              <div className="flex flex-wrap gap-6 border-t pt-4 border-gray-200 mt-4">
-                <div className="flex items-center gap-3">
-                  <label className="text-sm font-medium text-gray-700">
-                    Süre (Saniye):
-                  </label>
-                  <input
-                    type="number"
-                    min="5"
-                    value={q.durationSeconds}
-                    onChange={(e) =>
-                      handleQuestionChange(
-                        qIndex,
-                        "durationSeconds",
-                        isNaN(parseInt(e.target.value))
-                          ? 10
-                          : parseInt(e.target.value)
-                      )
-                    }
-                    className="w-24 border border-gray-300 rounded-md px-3 py-1 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  />
+                            <label className="flex items-center gap-2 text-sm">
+                              <input
+                                type="checkbox"
+                                checked={q.isAiGenerated}
+                                onChange={(e) =>
+                                  handleQuestionChange(
+                                    qIndex,
+                                    "isAiGenerated",
+                                    e.target.checked
+                                  )
+                                }
+                              />
+                              AI tarafından oluşturuldu
+                            </label>
+                          </div>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
                 </div>
-
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={q.isAiGenerated}
-                    onChange={(e) =>
-                      handleQuestionChange(
-                        qIndex,
-                        "isAiGenerated",
-                        e.target.checked
-                      )
-                    }
-                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                  />
-                  <label className="text-sm font-medium text-gray-700">
-                    AI ile Oluşturuldu (Çarkıfelek Çıksın)
-                  </label>
-                </div>
-              </div>
-            </div>
-          ))}
+              )}
+            </Droppable>
+          </DragDropContext>
         </section>
+      </div>
 
-        <div className="flex justify-end pt-6 border-t border-gray-200">
+      <div className="sticky bottom-0 bg-white/90 backdrop-blur border-t border-gray-200 px-10 py-6 flex justify-between items-center">
+        <button
+          onClick={addQuestion}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium transition"
+        >
+          + Yeni Soru Ekle
+        </button>
+
+        <div className="flex gap-4">
+          <button
+            onClick={() => router.push("/admin")}
+            className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg transition"
+          >
+            Vazgeç
+          </button>
+
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className={`bg-green-600 text-white px-8 py-3 rounded-md hover:bg-green-700 transition-colors font-semibold shadow-lg ${loading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-lg font-semibold transition disabled:opacity-50"
           >
-            {loading ? "Kaydediliyor..." : "Sınavı Kaydet ve Oluştur"}
+            {loading ? "Kaydediliyor..." : "Kaydet ve Oluştur"}
           </button>
         </div>
       </div>
