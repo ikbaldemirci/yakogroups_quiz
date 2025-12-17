@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import GameSession from "../models/GameSession.js";
 import Question from "../models/Question.js";
 import { io } from "../index.js";
+import Quiz from "../models/Quiz.js";
+
 
 const calculateScore = (basePoints, remainingTime, totalTime) => {
   if (remainingTime <= 0) return 0;
@@ -24,6 +26,14 @@ export const gameSocket = () => {
       if (!session) return;
 
       socket.join(lobbyCode);
+
+      const quiz = await Quiz.findById(session.quiz).lean();
+      if (quiz) {
+          io.to(socket.id).emit("quiz-info", {
+            title: quiz.title,
+            coverImage: quiz.coverImage,
+          });
+    }
 
       if (isAdmin) {
         io.to(socket.id).emit("players-updated", session.players);
