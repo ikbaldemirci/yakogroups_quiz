@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import dynamic from "next/dynamic";
+import { QRCodeSVG } from "qrcode.react";
 
 const WheelComponent = dynamic(() => import("../../../components/WheelComponent"), { ssr: false });
 
@@ -131,41 +132,63 @@ export default function AdminLobby() {
         </div>
 
         {gameState.status === "waiting" && (
-          <div className="text-center space-y-12">
-            <div>
-              <h2 className="text-3xl font-bold mb-4">
-                Oyuncular Bekleniyor...
-              </h2>
-              <div className="bg-slate-800/50 p-8 rounded-2xl min-h-[200px] border-2 border-dashed border-slate-700">
-                {gameState.players.length === 0 ? (
-                  <p className="text-slate-500 italic">
-                    Henüz kimse katılmadı.
-                  </p>
-                ) : (
-                  <div className="flex flex-wrap gap-4 justify-center">
-                    {gameState.players.map((p, i) => (
-                      <div
-                        key={i}
-                        className="bg-indigo-600 px-6 py-3 rounded-full font-bold shadow-lg animate-bounce-short"
-                      >
-                        {p.nickname}
-                      </div>
-                    ))}
-                  </div>
-                )}
+          <div className="flex flex-col lg:flex-row gap-8 items-start">
+            <div className="w-full lg:w-1/3 bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center border-4 border-yellow-400">
+              <h3 className="text-slate-900 text-2xl font-black mb-6 uppercase tracking-tight">Hemen Katıl!</h3>
+              <div className="bg-white p-4 rounded-xl shadow-inner border border-slate-100">
+                <QRCodeSVG
+                  value={joinLink}
+                  size={240}
+                  level="H"
+                  includeMargin={false}
+                />
               </div>
             </div>
 
-            <button
-              onClick={startGame}
-              disabled={gameState.players.length === 0}
-              className={`text-2xl px-12 py-6 rounded-xl font-bold transition-transform hover:scale-105 shadow-2xl ${gameState.players.length === 0
-                ? "bg-slate-700 text-slate-500 cursor-not-allowed"
-                : "bg-green-500 text-white hover:bg-green-400"
-                }`}
-            >
-              Yarışmayı Başlat
-            </button>
+            <div className="flex-1 w-full space-y-8">
+              <div className="text-center lg:text-left">
+                <h2 className="text-4xl font-black mb-4 flex items-center gap-4 justify-center lg:justify-start">
+                  Oyuncular Bekleniyor...
+                  <span className="flex h-3 w-3 relative">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                  </span>
+                </h2>
+                <div className="bg-slate-800/50 p-8 rounded-2xl min-h-[300px] border-2 border-dashed border-slate-700 backdrop-blur-sm">
+                  {gameState.players.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full py-12">
+                      <p className="text-slate-500 text-xl italic font-medium">
+                        Henüz kimse katılmadı. <br /> İlk oyuncuyu bekliyoruz!
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
+                      {gameState.players.map((p, i) => (
+                        <div
+                          key={i}
+                          className="bg-gradient-to-br from-indigo-500 to-purple-600 px-8 py-4 rounded-2xl font-black text-lg shadow-xl animate-bounce-short border-b-4 border-indigo-800"
+                        >
+                          {p.nickname}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-center lg:justify-start pt-4">
+                <button
+                  onClick={startGame}
+                  disabled={gameState.players.length === 0}
+                  className={`text-2xl px-16 py-8 rounded-2xl font-black transition-all transform hover:scale-105 shadow-2xl active:scale-95 flex items-center gap-4 ${gameState.players.length === 0
+                    ? "bg-slate-700 text-slate-500 cursor-not-allowed border-b-4 border-slate-800"
+                    : "bg-green-500 text-white hover:bg-green-400 border-b-4 border-green-700"
+                    }`}
+                >
+                  YARIŞMAYI BAŞLAT
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
