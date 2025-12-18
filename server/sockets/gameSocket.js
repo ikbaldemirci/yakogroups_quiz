@@ -29,11 +29,11 @@ export const gameSocket = () => {
 
       const quiz = await Quiz.findById(session.quiz).lean();
       if (quiz) {
-          io.to(socket.id).emit("quiz-info", {
-            title: quiz.title,
-            coverImage: quiz.coverImage,
-          });
-    }
+        io.to(socket.id).emit("quiz-info", {
+          title: quiz.title,
+          coverImage: quiz.coverImage,
+        });
+      }
 
       if (isAdmin) {
         io.to(socket.id).emit("players-updated", session.players);
@@ -104,7 +104,7 @@ export const gameSocket = () => {
       const session = await GameSession.findOne({ lobbyCode });
       if (!session || session.currentPhase !== "wheel") return;
 
-      const players = session.players;
+      const players = [...session.players].sort((a, b) => a.nickname.localeCompare(b.nickname));
       if (players.length === 0) return;
       const winner = players[Math.floor(Math.random() * players.length)];
 
