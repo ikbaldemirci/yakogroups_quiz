@@ -72,6 +72,10 @@ const GameSessionSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    currentQuestionStartedAt: {
+      type: Date,
+      default: null,
+    },
 
     players: [PlayerSchema],
 

@@ -37,33 +37,54 @@ export const gameSocket = () => {
 
       if (isAdmin) {
         io.to(socket.id).emit("players-updated", session.players);
-        if (session.status !== "waiting") {
-          io.to(socket.id).emit("game-state-sync", {
-            status: session.status,
-            currentPhase: session.currentPhase,
-            currentQuestionIndex: session.currentQuestionIndex,
-            currentPresenter: session.currentPresenter,
-          });
-        }
-        return;
       }
 
       const exists = session.players.some((p) => p.nickname === nickname);
 
-      if (session.status === "waiting" && !exists) {
+      // EĞER OYUN BAŞLADIYSA VEYA BİTTİYSE:
+      if (session.status !== "waiting") {
+        // Eğer oyuncu listede yoksa (yeni biriyse) girişi reddet
+        if (!exists && !isAdmin) {
+          const errorMsg = session.status === "active"
+            ? "Oyun çoktan başladı, artık katılamazsın."
+            : "Bu oyun sona erdi.";
+          io.to(socket.id).emit("join-error", errorMsg);
+          return;
+        }
+      }
+
+      // SADECE BEKLEME AŞAMASINDA YENİ OYUNCU EKLE
+      if (!isAdmin && session.status === "waiting" && !exists) {
         session.players.push({ nickname, score: 0, answers: [] });
         await session.save();
         io.to(lobbyCode).emit("players-updated", session.players);
-        return;
       }
 
-      io.to(socket.id).emit("players-updated", session.players);
       if (session.status !== "waiting") {
-        io.to(socket.id).emit("game-state-sync", {
+        let syncData = {
           status: session.status,
           currentPhase: session.currentPhase,
           currentQuestionIndex: session.currentQuestionIndex,
           currentPresenter: session.currentPresenter,
+        };
+
+        if (session.currentPhase === "question") {
+          const question = await getCurrentQuestion(session);
+          if (question) {
+            const now = new Date();
+            const elapsed = session.currentQuestionStartedAt
+              ? Math.floor((now - session.currentQuestionStartedAt) / 1000)
+              : 0;
+            const remaining = Math.max(0, question.durationSeconds - elapsed);
+
+            syncData.question = question;
+            syncData.remainingTime = remaining;
+          }
+        }
+
+        io.to(socket.id).emit("game-state-sync", {
+          ...syncData,
+          players: session.players
         });
       }
     });
@@ -83,6 +104,7 @@ export const gameSocket = () => {
       } else {
         session.currentPhase = "question";
         session.currentPresenter = null;
+        session.currentQuestionStartedAt = new Date();
       }
 
       await session.save();
@@ -121,6 +143,7 @@ export const gameSocket = () => {
       if (!session || session.currentPhase !== "wheel") return;
 
       session.currentPhase = "question";
+      session.currentQuestionStartedAt = new Date();
       await session.save();
 
       const question = await getCurrentQuestion(session);
@@ -234,6 +257,7 @@ export const gameSocket = () => {
         } else {
           session.currentPhase = "question";
           session.currentPresenter = null;
+          session.currentQuestionStartedAt = new Date();
           await session.save();
           io.to(lobbyCode).emit("question-changed", {
             index: session.currentQuestionIndex,

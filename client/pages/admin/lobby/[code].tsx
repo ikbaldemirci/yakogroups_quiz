@@ -88,6 +88,21 @@ export default function AdminLobby() {
       setGameState((prev) => ({ ...prev, status: "finished" }));
     });
 
+    socket.on("game-state-sync", (data: any) => {
+      setGameState((prev) => ({
+        ...prev,
+        status: data.status,
+        currentPhase: data.currentPhase,
+        currentQuestionIndex: data.currentQuestionIndex,
+        currentQuestionImage: data.question?.image,
+        players: data.players,
+      }));
+
+      if (data.question) {
+        setCurrentQuestionText(data.question.text);
+      }
+    });
+
     return () => {
       socket.disconnect();
     };
