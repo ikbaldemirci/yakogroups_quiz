@@ -61,22 +61,32 @@ export default function PlayerGame() {
   const [wheelWinnerShown, setWheelWinnerShown] = useState(false);
 
 
-  const Header = quizInfo && (
-    <div className="absolute top-4 left-4 flex items-center gap-3 z-50">
-      {quizInfo.coverImage && (
-        <img
-          src={`http://localhost:5000${quizInfo.coverImage}`}
-          alt="Şirket Logosu"
-          className="w-14 h-14 object-contain"
-        />
-      )}
-      {quizInfo.title && (
-        <span className="text-black  font-bold text-lg drop-shadow">
-          {quizInfo.title}
-        </span>
-      )}
-    </div>
-  );
+const Header = quizInfo && (
+  <div className="absolute top-5 left-5 flex items-center gap-4 z-50">
+    {quizInfo.coverImage && (
+      <img
+        src={`http://localhost:5000${quizInfo.coverImage}`}
+        alt="Şirket Logosu"
+        className="
+          h-20 
+          max-w-[200px] 
+          object-contain 
+          bg-white 
+          px-4 
+          py-2 
+          rounded-lg 
+          shadow-md
+        "
+      />
+    )}
+    {quizInfo.title && (
+      <span className="text-gray-900 font-medium text-lg tracking-tight">
+        {quizInfo.title}
+      </span>
+    )}
+  </div>
+);
+
 
 
   useEffect(() => {
