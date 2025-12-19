@@ -7,6 +7,20 @@ const WheelComponent = dynamic(() => import("../../components/WheelComponent"), 
 
 let socket: Socket;
 
+const getClientId = (lobbyCode: string) => {
+  const key = `quiz_client_${lobbyCode}`;
+  let id = sessionStorage.getItem(key);
+  if (!id) {
+    id =
+      (typeof crypto !== "undefined" && "randomUUID" in crypto)
+        ? crypto.randomUUID()
+        : `${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    sessionStorage.setItem(key, id);
+  }
+  return id;
+};
+
+
 interface Option {
   text: string;
   _id?: string;
@@ -110,6 +124,14 @@ export default function PlayerGame() {
       setQuizInfo(data);
     });
 
+    socket.on("join-ok", ({ nickname: serverNick }: any) => {
+  setError("");
+  setJoined(true);
+  setGameState((prev) => ({ ...prev, nickname: serverNick || nickname }));
+  sessionStorage.setItem(`quiz_nickname_${lobbyCode}`, serverNick || nickname);
+});
+
+
 
 
     socket.on("question-changed", (data: any) => {
@@ -137,8 +159,12 @@ export default function PlayerGame() {
     socket.on("join-error", (msg: string) => {
       setError(msg);
       setJoined(false);
+
+    if (msg.toLowerCase().includes("nickname alınmış")) {
       sessionStorage.removeItem(`quiz_nickname_${lobbyCode}`);
+      }
     });
+
 
     socket.on("game-state-sync", (data: any) => {
       setGameState((prev) => ({
@@ -160,12 +186,17 @@ export default function PlayerGame() {
     });
 
     const savedNickname = sessionStorage.getItem(`quiz_nickname_${lobbyCode}`);
-    if (savedNickname && !joined) {
+
+    if (savedNickname) {
       setNickname(savedNickname);
-      socket.emit("join-lobby", { lobbyCode, nickname: savedNickname });
-      setJoined(true);
-      setGameState((prev) => ({ ...prev, nickname: savedNickname }));
+      socket.emit("join-lobby", {
+        lobbyCode,
+        nickname: savedNickname,
+        clientId: getClientId(lobbyCode),
+      });
+      
     }
+
 
     return () => {
       socket.disconnect();
@@ -181,17 +212,21 @@ export default function PlayerGame() {
     }
   }, [gameState.currentPhase, timer]);
 
-  const handleJoin = async () => {
-    if (!nickname) return;
-    try {
-      socket.emit("join-lobby", { lobbyCode, nickname });
-      setJoined(true);
-      setGameState((prev) => ({ ...prev, nickname }));
-      sessionStorage.setItem(`quiz_nickname_${lobbyCode}`, nickname);
-    } catch (err) {
-      setError("Giriş yapılamadı");
-    }
-  };
+  const handleJoin = () => {
+  const nick = nickname.trim();
+  if (!nick) return;
+
+  setError("");
+
+  socket.emit("join-lobby", {
+    lobbyCode,
+    nickname: nick,
+    clientId: getClientId(lobbyCode),
+  });
+
+  
+};
+
 
   const submitAnswer = (index: number) => {
     if (selectedOption !== null || !currentQuestion) return;

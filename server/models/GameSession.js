@@ -9,6 +9,19 @@ const PlayerSchema = new mongoose.Schema(
       maxlength: 20,
     },
 
+    clientId: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    socketId: {
+      type: String,
+      default: null,
+    },
+    connected: {
+      type: Boolean,
+      default: true,
+    },
     score: {
       type: Number,
       default: 0,

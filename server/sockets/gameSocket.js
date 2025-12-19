@@ -20,74 +20,191 @@ export const gameSocket = () => {
         .lean();
       return questions[session.currentQuestionIndex];
     };
+socket.on("join-lobby", async ({ lobbyCode, nickname, isAdmin, clientId }) => {
+  const session = await GameSession.findOne({ lobbyCode });
+  if (!session) return;
 
-    socket.on("join-lobby", async ({ lobbyCode, nickname, isAdmin }) => {
-      const session = await GameSession.findOne({ lobbyCode });
-      if (!session) return;
+  
+  const normalizedNick = (nickname || "").trim();
+  const normalizedNickKey = normalizedNick.toLowerCase();
+  const normalizedClientId = (clientId || "").trim();
 
-      socket.join(lobbyCode);
+  if (!isAdmin) {
+    if (!normalizedClientId) {
+      io.to(socket.id).emit("join-error", "clientId eksik.");
+      return;
+    }
+    if (!normalizedNick) {
+      io.to(socket.id).emit("join-error", "Nickname boş olamaz.");
+      return;
+    }
+  }
 
-      const quiz = await Quiz.findById(session.quiz).lean();
-      if (quiz) {
-        io.to(socket.id).emit("quiz-info", {
-          title: quiz.title,
-          coverImage: quiz.coverImage,
-        });
-      }
+  
+  const existingByClient = !isAdmin
+    ? session.players.find((p) => (p.clientId || "").trim() === normalizedClientId)
+    : null;
 
-      if (isAdmin) {
-        io.to(socket.id).emit("players-updated", session.players);
-      }
+  
+  const existingByNickname = session.players.find(
+    (p) => (p.nickname || "").trim().toLowerCase() === normalizedNickKey
+  );
 
-      const exists = session.players.some((p) => p.nickname === nickname);
+  
+  if (!isAdmin && existingByClient) {
+    
+    nickname = existingByClient.nickname;
 
-      // EĞER OYUN BAŞLADIYSA VEYA BİTTİYSE:
-      if (session.status !== "waiting") {
-        // Eğer oyuncu listede yoksa (yeni biriyse) girişi reddet
-        if (!exists && !isAdmin) {
-          const errorMsg = session.status === "active"
-            ? "Oyun çoktan başladı, artık katılamazsın."
-            : "Bu oyun sona erdi.";
-          io.to(socket.id).emit("join-error", errorMsg);
-          return;
+    existingByClient.socketId = socket.id;
+    existingByClient.connected = true;
+
+    await session.save();
+
+    socket.data.lobbyCode = lobbyCode;
+    socket.data.clientId = normalizedClientId;
+    socket.data.isAdmin = false;
+
+    socket.join(lobbyCode);
+
+    const quiz = await Quiz.findById(session.quiz).lean();
+    if (quiz) {
+      io.to(socket.id).emit("quiz-info", {
+        title: quiz.title,
+        coverImage: quiz.coverImage,
+      });
+    }
+
+    io.to(socket.id).emit("join-ok", { nickname });
+
+    io.to(lobbyCode).emit("players-updated", session.players);
+
+    
+    if (session.status !== "waiting") {
+      let syncData = {
+        status: session.status,
+        currentPhase: session.currentPhase,
+        currentQuestionIndex: session.currentQuestionIndex,
+        currentPresenter: session.currentPresenter,
+      };
+
+      if (session.currentPhase === "question") {
+        const question = await getCurrentQuestion(session);
+        if (question) {
+          const now = new Date();
+          const elapsed = session.currentQuestionStartedAt
+            ? Math.floor((now - session.currentQuestionStartedAt) / 1000)
+            : 0;
+          const remaining = Math.max(0, question.durationSeconds - elapsed);
+
+          syncData.question = question;
+          syncData.remainingTime = remaining;
         }
       }
 
-      // SADECE BEKLEME AŞAMASINDA YENİ OYUNCU EKLE
-      if (!isAdmin && session.status === "waiting" && !exists) {
-        session.players.push({ nickname, score: 0, answers: [] });
-        await session.save();
-        io.to(lobbyCode).emit("players-updated", session.players);
-      }
+      io.to(socket.id).emit("game-state-sync", {
+        ...syncData,
+        players: session.players,
+      });
+    }
 
-      if (session.status !== "waiting") {
-        let syncData = {
-          status: session.status,
-          currentPhase: session.currentPhase,
-          currentQuestionIndex: session.currentQuestionIndex,
-          currentPresenter: session.currentPresenter,
-        };
+    return;
+  }
 
-        if (session.currentPhase === "question") {
-          const question = await getCurrentQuestion(session);
-          if (question) {
-            const now = new Date();
-            const elapsed = session.currentQuestionStartedAt
-              ? Math.floor((now - session.currentQuestionStartedAt) / 1000)
-              : 0;
-            const remaining = Math.max(0, question.durationSeconds - elapsed);
+  
+  if (!isAdmin && session.status === "waiting" && existingByNickname) {
+    io.to(socket.id).emit(
+      "join-error",
+      "Bu nickname alınmış. Lütfen başka bir nickname seçin."
+    );
+    return;
+  }
 
-            syncData.question = question;
-            syncData.remainingTime = remaining;
-          }
-        }
+  
+  if (!isAdmin && session.status !== "waiting" && !existingByNickname) {
+    const errorMsg =
+      session.status === "active"
+        ? "Oyun çoktan başladı, artık katılamazsın."
+        : "Bu oyun sona erdi.";
+    io.to(socket.id).emit("join-error", errorMsg);
+    return;
+  }
 
-        io.to(socket.id).emit("game-state-sync", {
-          ...syncData,
-          players: session.players
-        });
-      }
+  
+  socket.join(lobbyCode);
+
+  socket.data.lobbyCode = lobbyCode;
+  socket.data.clientId = normalizedClientId;
+  socket.data.isAdmin = !!isAdmin;
+
+  const quiz = await Quiz.findById(session.quiz).lean();
+  if (quiz) {
+    io.to(socket.id).emit("quiz-info", {
+      title: quiz.title,
+      coverImage: quiz.coverImage,
     });
+  }
+
+  if (isAdmin) {
+    io.to(socket.id).emit("players-updated", session.players);
+    io.to(socket.id).emit("join-ok", { nickname: "admin" });
+    return;
+  }
+
+  // Waiting ise ekle
+  if (session.status === "waiting") {
+    session.players.push({
+      nickname: normalizedNick,
+      clientId: normalizedClientId,
+      socketId: socket.id,
+      connected: true,
+      score: 0,
+      answers: [],
+    });
+
+    await session.save();
+    io.to(lobbyCode).emit("players-updated", session.players);
+    io.to(socket.id).emit("join-ok", { nickname: normalizedNick });
+    return;
+  }
+
+  
+  if (existingByNickname) {
+    existingByNickname.socketId = socket.id;
+    existingByNickname.connected = true;
+    await session.save();
+
+    io.to(socket.id).emit("join-ok", { nickname: existingByNickname.nickname });
+
+    io.to(lobbyCode).emit("players-updated", session.players);
+
+    let syncData = {
+      status: session.status,
+      currentPhase: session.currentPhase,
+      currentQuestionIndex: session.currentQuestionIndex,
+      currentPresenter: session.currentPresenter,
+    };
+
+    if (session.currentPhase === "question") {
+      const question = await getCurrentQuestion(session);
+      if (question) {
+        const now = new Date();
+        const elapsed = session.currentQuestionStartedAt
+          ? Math.floor((now - session.currentQuestionStartedAt) / 1000)
+          : 0;
+        const remaining = Math.max(0, question.durationSeconds - elapsed);
+
+        syncData.question = question;
+        syncData.remainingTime = remaining;
+      }
+    }
+
+    io.to(socket.id).emit("game-state-sync", {
+      ...syncData,
+      players: session.players,
+    });
+  }
+});
+
 
     socket.on("start-game", async ({ lobbyCode }) => {
       const session = await GameSession.findOne({ lobbyCode });
@@ -268,8 +385,29 @@ export const gameSocket = () => {
       }
     });
 
-    socket.on("disconnect", () => {
-      console.log("Client disconnected:", socket.id);
-    });
+   socket.on("disconnect", async () => {
+  console.log("Client disconnected:", socket.id);
+
+  const lobbyCode = socket.data?.lobbyCode;
+  const clientId = socket.data?.clientId;
+  const isAdmin = socket.data?.isAdmin;
+
+  if (!lobbyCode || !clientId || isAdmin) return;
+
+  const session = await GameSession.findOne({ lobbyCode });
+  if (!session) return;
+
+  const player = session.players.find(
+    (p) => (p.clientId || "").trim() === (clientId || "").trim()
+  );
+  if (!player) return;
+
+  player.connected = false;
+  player.socketId = null;
+
+  await session.save();
+  io.to(lobbyCode).emit("players-updated", session.players);
+});
+
   });
 };
