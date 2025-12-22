@@ -109,6 +109,7 @@ export default function PlayerGame() {
 
     socket.on("connect", () => {
       console.log("Connected to server");
+      socket.emit("get-quiz-info", { lobbyCode });
     });
 
     socket.on("game-started", () => {

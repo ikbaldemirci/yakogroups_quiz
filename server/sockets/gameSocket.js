@@ -20,6 +20,20 @@ export const gameSocket = () => {
         .lean();
       return questions[session.currentQuestionIndex];
     };
+    socket.on("get-quiz-info", async ({ lobbyCode }) => {
+      const session = await GameSession.findOne({ lobbyCode });
+      if (!session) return;
+
+      const quiz = await Quiz.findById(session.quiz).lean();
+      if (quiz) {
+        io.to(socket.id).emit("quiz-info", {
+          title: quiz.title,
+          coverImage: quiz.coverImage,
+          backgroundColor: quiz.backgroundColor,
+        });
+      }
+    });
+
     socket.on("join-lobby", async ({ lobbyCode, nickname, isAdmin, clientId }) => {
       const session = await GameSession.findOne({ lobbyCode });
       if (!session) return;
