@@ -251,30 +251,48 @@ export default function PlayerGame() {
 
   if (!joined) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-900 to-purple-800 flex items-center justify-center p-4 font-sans relative">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-900 to-purple-800 flex flex-col items-center justify-center p-4 font-sans relative">
 
-        {Header}
+        {quizInfo && (
+          <div className="mb-8 text-center flex flex-col items-center">
+            {quizInfo.title && (
+              <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-6 drop-shadow-lg tracking-tight">
+                {quizInfo.title}
+              </h1>
+            )}
+
+            {quizInfo.coverImage && (
+              <div className="bg-white p-4 rounded-2xl shadow-xl transform hover:scale-105 transition-transform duration-300">
+                <img
+                  src={`http://localhost:5000${quizInfo.coverImage}`}
+                  alt="Quiz Logo"
+                  className="h-32 md:h-40 object-contain"
+                />
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
             Yarışmaya Katıl
-          </h1>
-          <p className="text-gray-500 mb-6">Lobby: {lobbyCode}</p>
+          </h2>
+          <p className="text-gray-500 mb-6 font-medium">Lobby: <span className="text-indigo-600">{lobbyCode}</span></p>
 
           <input
             type="text"
-            className="w-full bg-gray-100 border-2 border-transparent focus:border-indigo-500 rounded-lg px-4 py-3 text-lg font-bold text-gray-800 mb-2 focus:outline-none"
+            className="w-full bg-gray-50 border-2 border-gray-200 focus:border-indigo-500 rounded-xl px-4 py-3 text-lg font-bold text-gray-800 mb-4 focus:outline-none transition-colors"
             placeholder="Takma Adın (Nickname)"
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
           />
 
-          {error && <p className="text-red-500 text-sm mb-4 font-semibold">{error}</p>}
+          {error && <div className="bg-red-100 text-red-600 p-3 rounded-lg text-sm mb-4 font-bold animate-pulse">{error}</div>}
 
           <button
             onClick={handleJoin}
             disabled={!nickname}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95 disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95 disabled:opacity-50 disabled:scale-100"
           >
             GİRİŞ YAP
           </button>
