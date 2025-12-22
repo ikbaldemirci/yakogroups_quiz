@@ -40,8 +40,6 @@ export default function EditQuiz() {
 
     const colors = [
         "",
-        "#312e81",
-        "#E0E7FF",
         "#ef4444",
         "#f97316",
         "#f59e0b",
