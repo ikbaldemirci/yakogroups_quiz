@@ -39,19 +39,21 @@ export default function CreateQuiz() {
   const [backgroundColor, setBackgroundColor] = useState("");
 
   const colors = [
-    "", 
-    "#ef4444", 
-    "#f97316", 
-    "#f59e0b", 
-    "#84cc16", 
-    "#10b981", 
-    "#06b6d4", 
-    "#3b82f6", 
-    "#6366f1", 
-    "#8b5cf6", 
-    "#d946ef", 
-    "#f43f5e", 
-    "#1f2937", 
+    "",
+    "#312e81",
+    "#E0E7FF",
+    "#ef4444",
+    "#f97316",
+    "#f59e0b",
+    "#84cc16",
+    "#10b981",
+    "#06b6d4",
+    "#3b82f6",
+    "#6366f1",
+    "#8b5cf6",
+    "#d946ef",
+    "#f43f5e",
+    "#1f2937",
   ];
 
   const [questions, setQuestions] = useState<Question[]>([

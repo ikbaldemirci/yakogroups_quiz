@@ -286,14 +286,24 @@ export default function PlayerGame() {
 
   if (gameState.status === "waiting") {
     return (
-      <div className="min-h-screen bg-indigo-900 flex flex-col items-center justify-center text-white p-4 text-center relative">
+      <div
+        className="min-h-screen flex flex-col items-center justify-center p-4 text-center relative"
+        style={{
+          backgroundColor: quizInfo?.backgroundColor || undefined,
+          color: quizInfo?.backgroundColor ? "white" : undefined // Ensure text is visible
+        }}
+      >
+        {!quizInfo?.backgroundColor && (
+          <div className="absolute inset-0 bg-indigo-900 -z-10" />
+        )}
+
         {Header}
 
         <div className="animate-pulse mb-8 text-6xl">⏳</div>
-        <h2 className="text-3xl font-bold mb-2">
+        <h2 className={`text-3xl font-bold mb-2 ${quizInfo?.backgroundColor ? "text-white" : "text-white"}`}>
           Hazırsın, {gameState.nickname}!
         </h2>
-        <p className="text-indigo-200">
+        <p className={`${quizInfo?.backgroundColor ? "text-white/80" : "text-indigo-200"}`}>
           Sunucunun oyunu başlatması bekleniyor...
         </p>
       </div>
@@ -306,7 +316,16 @@ export default function PlayerGame() {
       leaderboard.findIndex((p) => p.nickname === gameState.nickname) + 1;
 
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white p-4 text-center relative">
+      <div
+        className="min-h-screen flex flex-col items-center justify-center p-4 text-center relative"
+        style={{
+          backgroundColor: quizInfo?.backgroundColor || undefined,
+          color: quizInfo?.backgroundColor ? "white" : undefined
+        }}
+      >
+        {!quizInfo?.backgroundColor && (
+          <div className="absolute inset-0 bg-slate-900 -z-10" />
+        )}
 
         {Header}
 
@@ -314,7 +333,7 @@ export default function PlayerGame() {
           Oyun Bitti!
         </h1>
 
-        <p className="text-2xl mb-8">
+        <p className={`text-2xl mb-8 ${quizInfo?.backgroundColor ? "text-white" : "text-white"}`}>
           Sıralaman:{" "}
           <span className="font-bold text-white bg-indigo-600 px-3 py-1 rounded-lg">
             #{myRank > 0 ? myRank : "-"}
@@ -322,7 +341,7 @@ export default function PlayerGame() {
         </p>
 
         <div className="bg-slate-800 rounded-xl p-6 w-full max-w-md">
-          <h3 className="text-xl font-bold mb-4 border-b border-slate-700 pb-2">
+          <h3 className="text-xl font-bold mb-4 border-b border-slate-700 pb-2 text-white">
             Lider Tablosu
           </h3>
 
@@ -388,10 +407,20 @@ export default function PlayerGame() {
 
   if (gameState.currentPhase === "leaderboard") {
     return (
-      <div className="min-h-screen bg-blue-900 text-white p-6 flex flex-col items-center relative">
+      <div
+        className="min-h-screen p-6 flex flex-col items-center relative"
+        style={{
+          backgroundColor: quizInfo?.backgroundColor || undefined,
+          color: quizInfo?.backgroundColor ? "white" : undefined
+        }}
+      >
+        {!quizInfo?.backgroundColor && (
+          <div className="absolute inset-0 bg-blue-900 -z-10" />
+        )}
+
         {Header}
 
-        <h2 className="text-3xl font-bold mb-8 bg-blue-800 px-6 py-2 rounded-full shadow-lg">
+        <h2 className={`text-3xl font-bold mb-8 px-6 py-2 rounded-full shadow-lg ${quizInfo?.backgroundColor ? "bg-white/20 text-white" : "bg-blue-800 text-white"}`}>
           Puan Durumu
         </h2>
 
@@ -400,8 +429,8 @@ export default function PlayerGame() {
             <div
               key={i}
               className={`flex items-center justify-between p-4 rounded-xl shadow-md transform transition-all ${p.nickname === gameState.nickname
-                ? "bg-gradient-to-r from-yellow-500 to-orange-500 scale-105 border-2 border-white"
-                : "bg-white/10"
+                ? "bg-gradient-to-r from-yellow-500 to-orange-500 scale-105 border-2 border-white text-white"
+                : "bg-white/10 text-white"
                 }`}
             >
               <div className="flex items-center gap-4">
@@ -412,7 +441,7 @@ export default function PlayerGame() {
           ))}
         </div>
 
-        <div className="mt-auto pt-8 text-blue-300 text-sm">
+        <div className={`mt-auto pt-8 text-sm ${quizInfo?.backgroundColor ? "text-white/80" : "text-blue-300"}`}>
           Diğer soruya geçilmesi bekleniyor...
         </div>
       </div>
