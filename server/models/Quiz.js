@@ -18,12 +18,6 @@ const QuizSchema = new mongoose.Schema(
       type: String,
     },
 
-    durationMinutes: {
-      type: Number,
-      required: true,
-      min: 1,
-    },
-
     totalScore: {
       type: Number,
       default: 0,

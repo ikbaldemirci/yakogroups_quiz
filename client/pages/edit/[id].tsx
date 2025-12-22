@@ -34,7 +34,6 @@ export default function EditQuiz() {
 
     const [quizTitle, setQuizTitle] = useState("");
     const [quizDescription, setQuizDescription] = useState("");
-    const [quizDuration, setQuizDuration] = useState(30);
     const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
     const [coverPreview, setCoverPreview] = useState<string | null>(null);
 
@@ -54,7 +53,6 @@ export default function EditQuiz() {
 
                 setQuizTitle(quiz.title);
                 setQuizDescription(quiz.description);
-                setQuizDuration(quiz.durationMinutes);
                 if (quiz.coverImage) {
                     setCoverPreview(`http://localhost:5000${quiz.coverImage}`);
                 }
@@ -225,7 +223,6 @@ export default function EditQuiz() {
                 body: JSON.stringify({
                     title: quizTitle,
                     description: quizDescription,
-                    durationMinutes: quizDuration,
                     coverImage: coverImageUrl,
                     questions: questionsWithImages,
                 }),
@@ -323,18 +320,6 @@ export default function EditQuiz() {
                                         onChange={(e) => setQuizDescription(e.target.value)}
                                         rows={4}
                                         className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:outline-none transition"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Tahmini Süre (dk)
-                                    </label>
-                                    <input
-                                        type="number"
-                                        value={quizDuration}
-                                        onChange={(e) => setQuizDuration(Number(e.target.value))}
-                                        className="w-40 rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:outline-none transition"
                                     />
                                 </div>
                             </div>

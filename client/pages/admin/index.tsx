@@ -124,8 +124,7 @@ export default function AdminDashboard() {
                     {quiz.description || "Açıklama girilmemiş."}
                   </p>
 
-                  <div className="flex justify-between items-center text-sm text-gray-500 mb-6">
-                    <span>{quiz.durationMinutes} dk</span>
+                  <div className="flex justify-end items-center text-sm text-gray-500 mb-6">
                     <span>
                       {new Date(quiz.createdAt).toLocaleDateString("tr-TR")}
                     </span>

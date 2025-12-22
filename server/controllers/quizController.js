@@ -3,11 +3,11 @@ import Question from "../models/Question.js";
 
 export const createQuiz = async (req, res) => {
   try {
-    const { title, description, coverImage, durationMinutes } = req.body;
+    const { title, description, coverImage } = req.body;
 
-    if (!title || !durationMinutes) {
+    if (!title) {
       return res.status(400).json({
-        message: "Title and durationMinutes are required",
+        message: "Title is required",
       });
     }
 
@@ -15,7 +15,6 @@ export const createQuiz = async (req, res) => {
       title,
       description,
       coverImage,
-      durationMinutes,
       totalScore: 0,
       company: req.company._id,
     });
