@@ -7,14 +7,15 @@ import {
   deactivateQuiz,
   deletePermanentQuiz,
 } from "../controllers/quizController.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/", createQuiz);
-router.get("/", getQuizzes);
+router.post("/", protect, createQuiz);
+router.get("/", protect, getQuizzes);
 router.get("/:id", getQuizById);
-router.put("/:id", updateQuiz);
-router.delete("/:id", deactivateQuiz);
-router.delete("/hard/:id", deletePermanentQuiz);
+router.put("/:id", protect, updateQuiz);
+router.delete("/:id", protect, deactivateQuiz);
+router.delete("/hard/:id", protect, deletePermanentQuiz);
 
 export default router;

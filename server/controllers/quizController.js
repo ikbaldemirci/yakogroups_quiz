@@ -17,6 +17,7 @@ export const createQuiz = async (req, res) => {
       coverImage,
       durationMinutes,
       totalScore: 0,
+      company: req.company._id,
     });
 
     if (req.body.questions && Array.isArray(req.body.questions)) {
@@ -53,7 +54,10 @@ export const createQuiz = async (req, res) => {
 
 export const getQuizzes = async (req, res) => {
   try {
-    const quizzes = await Quiz.find({ isActive: true }).sort({
+    const quizzes = await Quiz.find({
+      isActive: true,
+      company: req.company._id
+    }).sort({
       createdAt: -1,
     });
 

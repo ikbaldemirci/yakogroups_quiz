@@ -33,6 +33,11 @@ const QuizSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    company: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Company",
+      required: true,
+    },
   },
   {
     timestamps: true,

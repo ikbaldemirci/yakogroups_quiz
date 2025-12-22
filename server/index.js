@@ -13,6 +13,7 @@ import quizRoutes from "./routes/quizRoutes.js";
 import questionRoutes from "./routes/questionRoutes.js";
 import gameSessionRoutes from "./routes/gameSessionRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 import { gameSocket } from "./sockets/gameSocket.js";
 
 const app = express();
@@ -29,6 +30,7 @@ app.use("/api/quizzes", quizRoutes);
 app.use("/api/questions", questionRoutes);
 app.use("/api/game-sessions", gameSessionRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/auth", authRoutes);
 
 const io = new Server(server, {
   cors: {

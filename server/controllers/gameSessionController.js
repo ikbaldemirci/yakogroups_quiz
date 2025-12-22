@@ -20,11 +20,12 @@ const calculateScore = (basePoints, remainingTime, totalTime) => {
 
 export const createGameSession = async (req, res) => {
   try {
-    const { quizId, companyId } = req.body;
+    const { quizId } = req.body;
+    const companyId = req.company._id;
 
-    if (!quizId || !companyId) {
+    if (!quizId) {
       return res.status(400).json({
-        message: "quizId and companyId are required",
+        message: "quizId is required",
       });
     }
 

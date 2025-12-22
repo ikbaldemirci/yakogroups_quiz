@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import dynamic from "next/dynamic";
 import { QRCodeSVG } from "qrcode.react";
+import ProtectedRoute from "../../../components/ProtectedRoute";
 
 const WheelComponent = dynamic(() => import("../../../components/WheelComponent"), { ssr: false });
 
@@ -124,222 +125,224 @@ export default function AdminLobby() {
     socket.emit("start-question-after-wheel", { lobbyCode });
   };
 
-  if (!lobbyCode) return <div>Yükleniyor...</div>;
+  if (!lobbyCode) return <div className="p-10 text-center text-white">Yükleniyor...</div>;
 
   const joinLink = `http://localhost:3000/play/${lobbyCode}`;
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white font-sans p-8">
-      <div className="max-w-5xl mx-auto">
-        <div className="flex justify-between items-center mb-12 border-b border-slate-700 pb-6">
-          <div>
-            <span className="text-slate-400 text-sm uppercase tracking-wider">
-              Lobby Code
-            </span>
-            <h1 className="text-5xl font-mono font-bold text-yellow-400 tracking-widest">
-              {lobbyCode}
-            </h1>
+    <ProtectedRoute>
+      <div className="min-h-screen bg-slate-900 text-white font-sans p-8">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex justify-between items-center mb-12 border-b border-slate-700 pb-6">
+            <div>
+              <span className="text-slate-400 text-sm uppercase tracking-wider">
+                Lobby Code
+              </span>
+              <h1 className="text-5xl font-mono font-bold text-yellow-400 tracking-widest">
+                {lobbyCode}
+              </h1>
+            </div>
+            <div className="bg-slate-800 px-6 py-3 rounded-lg border border-slate-700">
+              <p className="text-slate-400 text-xs mb-1">Katılım Linki</p>
+              <p className="text-blue-400 font-mono text-lg">{joinLink}</p>
+            </div>
           </div>
-          <div className="bg-slate-800 px-6 py-3 rounded-lg border border-slate-700">
-            <p className="text-slate-400 text-xs mb-1">Katılım Linki</p>
-            <p className="text-blue-400 font-mono text-lg">{joinLink}</p>
-          </div>
-        </div>
 
-        {gameState.status === "waiting" && (
-          <div className="flex flex-col lg:flex-row gap-8 items-start">
-            <div className="w-full lg:w-1/3 bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center border-4 border-yellow-400">
-              <h3 className="text-slate-900 text-2xl font-black mb-6 uppercase tracking-tight">Hemen Katıl!</h3>
-              <div className="bg-white p-4 rounded-xl shadow-inner border border-slate-100">
-                <QRCodeSVG
-                  value={joinLink}
-                  size={240}
-                  level="H"
-                  includeMargin={false}
-                />
+          {gameState.status === "waiting" && (
+            <div className="flex flex-col lg:flex-row gap-8 items-start">
+              <div className="w-full lg:w-1/3 bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center border-4 border-yellow-400">
+                <h3 className="text-slate-900 text-2xl font-black mb-6 uppercase tracking-tight">Hemen Katıl!</h3>
+                <div className="bg-white p-4 rounded-xl shadow-inner border border-slate-100">
+                  <QRCodeSVG
+                    value={joinLink}
+                    size={240}
+                    level="H"
+                    includeMargin={false}
+                  />
+                </div>
+              </div>
+
+              <div className="flex-1 w-full space-y-8">
+                <div className="text-center lg:text-left">
+                  <h2 className="text-4xl font-black mb-4 flex items-center gap-4 justify-center lg:justify-start">
+                    Oyuncular Bekleniyor...
+                    <span className="flex h-3 w-3 relative">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                    </span>
+                  </h2>
+                  <div className="bg-slate-800/50 p-8 rounded-2xl min-h-[300px] border-2 border-dashed border-slate-700 backdrop-blur-sm">
+                    {gameState.players.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center h-full py-12">
+                        <p className="text-slate-500 text-xl italic font-medium">
+                          Henüz kimse katılmadı. <br /> İlk oyuncuyu bekliyoruz!
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
+                        {gameState.players.map((p, i) => (
+                          <div
+                            key={i}
+                            className="bg-gradient-to-br from-indigo-500 to-purple-600 px-8 py-4 rounded-2xl font-black text-lg shadow-xl animate-bounce-short border-b-4 border-indigo-800"
+                          >
+                            {p.nickname}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex justify-center lg:justify-start pt-4">
+                  <button
+                    onClick={startGame}
+                    disabled={gameState.players.length === 0}
+                    className={`text-2xl px-16 py-8 rounded-2xl font-black transition-all transform hover:scale-105 shadow-2xl active:scale-95 flex items-center gap-4 ${gameState.players.length === 0
+                      ? "bg-slate-700 text-slate-500 cursor-not-allowed border-b-4 border-slate-800"
+                      : "bg-green-500 text-white hover:bg-green-400 border-b-4 border-green-700"
+                      }`}
+                  >
+                    YARIŞMAYI BAŞLAT
+                  </button>
+                </div>
               </div>
             </div>
+          )}
 
-            <div className="flex-1 w-full space-y-8">
-              <div className="text-center lg:text-left">
-                <h2 className="text-4xl font-black mb-4 flex items-center gap-4 justify-center lg:justify-start">
-                  Oyuncular Bekleniyor...
-                  <span className="flex h-3 w-3 relative">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                  </span>
-                </h2>
-                <div className="bg-slate-800/50 p-8 rounded-2xl min-h-[300px] border-2 border-dashed border-slate-700 backdrop-blur-sm">
-                  {gameState.players.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full py-12">
-                      <p className="text-slate-500 text-xl italic font-medium">
-                        Henüz kimse katılmadı. <br /> İlk oyuncuyu bekliyoruz!
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
-                      {gameState.players.map((p, i) => (
-                        <div
-                          key={i}
-                          className="bg-gradient-to-br from-indigo-500 to-purple-600 px-8 py-4 rounded-2xl font-black text-lg shadow-xl animate-bounce-short border-b-4 border-indigo-800"
+          {gameState.status === "active" && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="col-span-1 bg-slate-800 p-6 rounded-xl border border-slate-700 h-fit">
+                <h3 className="text-xl font-semibold mb-6 text-slate-300">
+                  Yönetim Paneli
+                </h3>
+
+                <div className="space-y-6">
+                  <div className="bg-slate-900 p-4 rounded-lg">
+                    <span className="text-xs text-slate-500 uppercase">
+                      Şu Anki Durum
+                    </span>
+                    <p className="text-2xl font-bold text-yellow-400 uppercase">
+                      {gameState.currentPhase}
+                    </p>
+                  </div>
+
+                  {gameState.currentPhase === "question" && (
+                    <button
+                      onClick={nextStep}
+                      className="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-lg font-bold text-lg transition-colors"
+                    >
+                      Sonraki Adım (Puan Tablosu)
+                    </button>
+                  )}
+
+                  {gameState.currentPhase === "leaderboard" && (
+                    <button
+                      onClick={nextStep}
+                      className="w-full bg-green-600 hover:bg-green-500 py-4 rounded-lg font-bold text-lg transition-colors"
+                    >
+                      Sıradaki Soruya Geç
+                    </button>
+                  )}
+
+                  {gameState.currentPhase === "wheel" && (
+                    <div className="space-y-4">
+                      {!wheelWinner ? (
+                        <button
+                          onClick={spinWheel}
+                          className="w-full bg-purple-600 hover:bg-purple-500 py-4 rounded-lg font-bold text-lg transition-colors animate-pulse"
                         >
-                          {p.nickname}
-                        </div>
-                      ))}
+                          Çarkı Çevir!
+                        </button>
+                      ) : (
+                        wheelWinnerShown && (
+                          <button
+                            onClick={startQuestionAfterWheel}
+                            className="w-full bg-green-600 hover:bg-green-500 py-4 rounded-lg font-bold text-lg transition-colors"
+                          >
+                            Soruyu Başlat
+                          </button>
+                        )
+                      )}
                     </div>
                   )}
                 </div>
               </div>
 
-              <div className="flex justify-center lg:justify-start pt-4">
-                <button
-                  onClick={startGame}
-                  disabled={gameState.players.length === 0}
-                  className={`text-2xl px-16 py-8 rounded-2xl font-black transition-all transform hover:scale-105 shadow-2xl active:scale-95 flex items-center gap-4 ${gameState.players.length === 0
-                    ? "bg-slate-700 text-slate-500 cursor-not-allowed border-b-4 border-slate-800"
-                    : "bg-green-500 text-white hover:bg-green-400 border-b-4 border-green-700"
-                    }`}
-                >
-                  YARIŞMAYI BAŞLAT
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {gameState.status === "active" && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="col-span-1 bg-slate-800 p-6 rounded-xl border border-slate-700 h-fit">
-              <h3 className="text-xl font-semibold mb-6 text-slate-300">
-                Yönetim Paneli
-              </h3>
-
-              <div className="space-y-6">
-                <div className="bg-slate-900 p-4 rounded-lg">
-                  <span className="text-xs text-slate-500 uppercase">
-                    Şu Anki Durum
-                  </span>
-                  <p className="text-2xl font-bold text-yellow-400 uppercase">
-                    {gameState.currentPhase}
-                  </p>
-                </div>
-
+              <div className="col-span-2 bg-black rounded-xl border-4 border-slate-800 p-8 flex items-center justify-center min-h-[400px]">
                 {gameState.currentPhase === "question" && (
-                  <button
-                    onClick={nextStep}
-                    className="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-lg font-bold text-lg transition-colors"
-                  >
-                    Sonraki Adım (Puan Tablosu)
-                  </button>
+                  <div className="text-center">
+                    <span className="bg-yellow-500 text-black px-3 py-1 rounded text-sm font-bold mb-4 inline-block">
+                      SORU EKRANI
+                    </span>
+                    {gameState.currentQuestionImage && (
+                      <div className="mb-4 flex justify-center">
+                        <img
+                          src={`http://localhost:5000${gameState.currentQuestionImage}`}
+                          alt="Soru Görseli"
+                          className="max-h-48 rounded-lg shadow-sm object-contain bg-white"
+                        />
+                      </div>
+                    )}
+                    <h2 className="text-3xl font-bold">{currentQuestionText}</h2>
+                    <p className="text-slate-500 mt-4">Oyuncular cevaplıyor...</p>
+                  </div>
                 )}
 
                 {gameState.currentPhase === "leaderboard" && (
-                  <button
-                    onClick={nextStep}
-                    className="w-full bg-green-600 hover:bg-green-500 py-4 rounded-lg font-bold text-lg transition-colors"
-                  >
-                    Sıradaki Soruya Geç
-                  </button>
+                  <div className="text-center">
+                    <h2 className="text-4xl font-bold text-yellow-400 mb-4">
+                      Puan Tablosu
+                    </h2>
+                    <p className="text-slate-400">Sonuçlar gösteriliyor...</p>
+                  </div>
                 )}
 
                 {gameState.currentPhase === "wheel" && (
-                  <div className="space-y-4">
-                    {!wheelWinner ? (
-                      <button
-                        onClick={spinWheel}
-                        className="w-full bg-purple-600 hover:bg-purple-500 py-4 rounded-lg font-bold text-lg transition-colors animate-pulse"
-                      >
-                        Çarkı Çevir!
-                      </button>
+                  <div className="text-center flex flex-col items-center">
+                    <h2 className="text-3xl font-bold text-purple-400 mb-6">
+                      Çarkıfelek Zamanı!
+                    </h2>
+                    <div className="mb-6">
+                      <WheelComponent
+                        players={gameState.players}
+                        winner={wheelWinner || null}
+                        spinning={!!wheelWinner && !wheelWinnerShown}
+                        onStopSpinning={() => setWheelWinnerShown(true)}
+                      />
+                    </div>
+                    {wheelWinner && wheelWinnerShown ? (
+                      <div className="animate-bounce">
+                        <p className="text-slate-400">Seçilen Kişi:</p>
+                        <p className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 mt-2">
+                          {wheelWinner}
+                        </p>
+                      </div>
                     ) : (
-                      wheelWinnerShown && (
-                        <button
-                          onClick={startQuestionAfterWheel}
-                          className="w-full bg-green-600 hover:bg-green-500 py-4 rounded-lg font-bold text-lg transition-colors"
-                        >
-                          Soruyu Başlat
-                        </button>
-                      )
+                      <p className="text-slate-500 animate-pulse">
+                        {!wheelWinner ? "Çarkı çevirmek için butona basın..." : "Çark dönüyor..."}
+                      </p>
                     )}
                   </div>
                 )}
               </div>
             </div>
+          )}
 
-            <div className="col-span-2 bg-black rounded-xl border-4 border-slate-800 p-8 flex items-center justify-center min-h-[400px]">
-              {gameState.currentPhase === "question" && (
-                <div className="text-center">
-                  <span className="bg-yellow-500 text-black px-3 py-1 rounded text-sm font-bold mb-4 inline-block">
-                    SORU EKRANI
-                  </span>
-                  {gameState.currentQuestionImage && (
-                    <div className="mb-4 flex justify-center">
-                      <img
-                        src={`http://localhost:5000${gameState.currentQuestionImage}`}
-                        alt="Soru Görseli"
-                        className="max-h-48 rounded-lg shadow-sm object-contain bg-white"
-                      />
-                    </div>
-                  )}
-                  <h2 className="text-3xl font-bold">{currentQuestionText}</h2>
-                  <p className="text-slate-500 mt-4">Oyuncular cevaplıyor...</p>
-                </div>
-              )}
-
-              {gameState.currentPhase === "leaderboard" && (
-                <div className="text-center">
-                  <h2 className="text-4xl font-bold text-yellow-400 mb-4">
-                    Puan Tablosu
-                  </h2>
-                  <p className="text-slate-400">Sonuçlar gösteriliyor...</p>
-                </div>
-              )}
-
-              {gameState.currentPhase === "wheel" && (
-                <div className="text-center flex flex-col items-center">
-                  <h2 className="text-3xl font-bold text-purple-400 mb-6">
-                    Çarkıfelek Zamanı!
-                  </h2>
-                  <div className="mb-6">
-                    <WheelComponent
-                      players={gameState.players}
-                      winner={wheelWinner || null}
-                      spinning={!!wheelWinner && !wheelWinnerShown}
-                      onStopSpinning={() => setWheelWinnerShown(true)}
-                    />
-                  </div>
-                  {wheelWinner && wheelWinnerShown ? (
-                    <div className="animate-bounce">
-                      <p className="text-slate-400">Seçilen Kişi:</p>
-                      <p className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 mt-2">
-                        {wheelWinner}
-                      </p>
-                    </div>
-                  ) : (
-                    <p className="text-slate-500 animate-pulse">
-                      {!wheelWinner ? "Çarkı çevirmek için butona basın..." : "Çark dönüyor..."}
-                    </p>
-                  )}
-                </div>
-              )}
+          {gameState.status === "finished" && (
+            <div className="text-center py-20">
+              <h2 className="text-6xl font-bold text-yellow-400 mb-8">
+                OYUN BİTTİ!
+              </h2>
+              <button
+                onClick={() => router.push("/admin")}
+                className="bg-slate-700 hover:bg-slate-600 px-8 py-3 rounded-lg text-lg"
+              >
+                Admin Paneline Dön
+              </button>
             </div>
-          </div>
-        )}
-
-        {gameState.status === "finished" && (
-          <div className="text-center py-20">
-            <h2 className="text-6xl font-bold text-yellow-400 mb-8">
-              OYUN BİTTİ!
-            </h2>
-            <button
-              onClick={() => router.push("/admin")}
-              className="bg-slate-700 hover:bg-slate-600 px-8 py-3 rounded-lg text-lg"
-            >
-              Admin Paneline Dön
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div >
+    </ProtectedRoute>
   );
 }

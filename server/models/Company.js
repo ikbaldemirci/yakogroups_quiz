@@ -26,6 +26,10 @@ const CompanySchema = new mongoose.Schema(
       type: String,
       maxlength: 500,
     },
+    password: {
+      type: String,
+      required: true,
+    },
 
     isActive: {
       type: Boolean,
