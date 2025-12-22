@@ -36,6 +36,12 @@ const CompanySchema = new mongoose.Schema(
       default: true,
     },
 
+    role: {
+      type: String,
+      enum: ["company", "super-admin"],
+      default: "company",
+    },
+
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

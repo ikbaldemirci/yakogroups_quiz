@@ -37,12 +37,14 @@ export const signup = async (req, res) => {
             name,
             email,
             password: hashedPassword,
+            role: "company",
         });
 
         res.status(201).json({
             _id: company._id,
             name: company.name,
             email: company.email,
+            role: company.role,
             token: generateToken(company._id),
         });
     } catch (error) {
@@ -73,6 +75,7 @@ export const login = async (req, res) => {
             _id: company._id,
             name: company.name,
             email: company.email,
+            role: company.role,
             token: generateToken(company._id),
         });
     } catch (error) {

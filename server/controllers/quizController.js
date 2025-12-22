@@ -54,12 +54,12 @@ export const createQuiz = async (req, res) => {
 
 export const getQuizzes = async (req, res) => {
   try {
-    const quizzes = await Quiz.find({
-      isActive: true,
-      company: req.company._id
-    }).sort({
-      createdAt: -1,
-    });
+    const isSuperAdmin = req.company?.role === "super-admin";
+    const filter = isSuperAdmin ? { isActive: true } : { isActive: true, company: req.company._id };
+
+    const quizzes = await Quiz.find(filter)
+      .populate("company", "name")
+      .sort({ createdAt: -1 });
 
     res.status(200).json(quizzes);
   } catch (error) {

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import ProtectedRoute from "../../components/ProtectedRoute";
+import { useAuth } from "../../context/AuthContext";
 
 interface Quiz {
   _id: string;
@@ -10,10 +11,14 @@ interface Quiz {
   durationMinutes: number;
   coverImage?: string;
   createdAt: string;
+  company?: {
+    name: string;
+  };
 }
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const { role } = useAuth();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -65,8 +70,14 @@ export default function AdminDashboard() {
       <div className="min-h-screen bg-gray-100 p-8 font-sans">
         <header className="max-w-6xl mx-auto flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Admin Panel</h1>
-            <p className="text-gray-600">Sınavları yönetin ve oturum başlatın</p>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {role === "super-admin" ? "Sistem Genel Paneli" : "Admin Panel"}
+            </h1>
+            <p className="text-gray-600">
+              {role === "super-admin"
+                ? "Tüm şirketlerin sınavlarını buradan görebilirsiniz."
+                : "Sınavları yönetin ve oturum başlatın"}
+            </p>
           </div>
           <Link
             href="/create"
