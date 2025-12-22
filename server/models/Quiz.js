@@ -14,6 +14,11 @@ const QuizSchema = new mongoose.Schema(
       maxlength: 500,
     },
 
+    backgroundColor: {
+      type: String,
+      default: "",
+    },
+
     coverImage: {
       type: String,
     },

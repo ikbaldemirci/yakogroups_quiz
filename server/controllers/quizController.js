@@ -3,7 +3,7 @@ import Question from "../models/Question.js";
 
 export const createQuiz = async (req, res) => {
   try {
-    const { title, description, coverImage } = req.body;
+    const { title, description, coverImage, backgroundColor } = req.body;
 
     if (!title) {
       return res.status(400).json({
@@ -15,6 +15,7 @@ export const createQuiz = async (req, res) => {
       title,
       description,
       coverImage,
+      backgroundColor,
       totalScore: 0,
       company: req.company._id,
     });

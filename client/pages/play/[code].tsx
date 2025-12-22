@@ -63,6 +63,7 @@ export default function PlayerGame() {
   const [quizInfo, setQuizInfo] = useState<{
     title?: string;
     coverImage?: string;
+    backgroundColor?: string;
   } | null>(null);
 
 
@@ -125,11 +126,11 @@ export default function PlayerGame() {
     });
 
     socket.on("join-ok", ({ nickname: serverNick }: any) => {
-  setError("");
-  setJoined(true);
-  setGameState((prev) => ({ ...prev, nickname: serverNick || nickname }));
-  sessionStorage.setItem(`quiz_nickname_${lobbyCode}`, serverNick || nickname);
-});
+      setError("");
+      setJoined(true);
+      setGameState((prev) => ({ ...prev, nickname: serverNick || nickname }));
+      sessionStorage.setItem(`quiz_nickname_${lobbyCode}`, serverNick || nickname);
+    });
 
 
 
@@ -160,8 +161,8 @@ export default function PlayerGame() {
       setError(msg);
       setJoined(false);
 
-    if (msg.toLowerCase().includes("nickname alınmış")) {
-      sessionStorage.removeItem(`quiz_nickname_${lobbyCode}`);
+      if (msg.toLowerCase().includes("nickname alınmış")) {
+        sessionStorage.removeItem(`quiz_nickname_${lobbyCode}`);
       }
     });
 
@@ -194,7 +195,7 @@ export default function PlayerGame() {
         nickname: savedNickname,
         clientId: getClientId(lobbyCode),
       });
-      
+
     }
 
 
@@ -213,19 +214,19 @@ export default function PlayerGame() {
   }, [gameState.currentPhase, timer]);
 
   const handleJoin = () => {
-  const nick = nickname.trim();
-  if (!nick) return;
+    const nick = nickname.trim();
+    if (!nick) return;
 
-  setError("");
+    setError("");
 
-  socket.emit("join-lobby", {
-    lobbyCode,
-    nickname: nick,
-    clientId: getClientId(lobbyCode),
-  });
+    socket.emit("join-lobby", {
+      lobbyCode,
+      nickname: nick,
+      clientId: getClientId(lobbyCode),
+    });
 
-  
-};
+
+  };
 
 
   const submitAnswer = (index: number) => {
@@ -420,7 +421,15 @@ export default function PlayerGame() {
 
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col font-sans relative">
+    <div
+      className="min-h-screen flex flex-col font-sans relative"
+      style={{
+        backgroundColor: quizInfo?.backgroundColor || undefined,
+        backgroundImage: !quizInfo?.backgroundColor ? "linear-gradient(to bottom right, #f1f5f9, #cbd5e1)" : "none"
+      }}
+    >
+      {!quizInfo?.backgroundColor && <div className="absolute inset-0 bg-slate-100 -z-10" />}
+
       {Header}
 
       <div className="h-2 bg-gray-200 w-full">
@@ -449,7 +458,8 @@ export default function PlayerGame() {
           <span className="inline-block bg-indigo-100 text-indigo-700 font-bold px-3 py-1 rounded-full text-sm mb-4">
             {timer} Saniye
           </span>
-          <h2 className="text-2xl md:text-3xl font-bold text-slate-800 leading-tight">
+          <h2 className={`text-2xl md:text-3xl font-bold leading-tight ${quizInfo?.backgroundColor ? "text-white drop-shadow-md" : "text-slate-800"
+            }`}>
             {currentQuestion?.text}
           </h2>
         </div>
@@ -475,9 +485,9 @@ export default function PlayerGame() {
         </div>
       </div>
 
-      <div className="bg-white p-4 border-t border-gray-200 flex justify-between items-center text-sm text-gray-500">
-        <span>{gameState.nickname}</span>
-        <span>Skor: {gameState.score}</span>
+      <div className="bg-white/90 backdrop-blur p-4 border-t border-gray-200 flex justify-between items-center text-sm text-gray-500">
+        <span className="font-bold text-gray-700">{gameState.nickname}</span>
+        <span className="font-bold text-indigo-600">Skor: {gameState.score}</span>
       </div>
     </div>
   );

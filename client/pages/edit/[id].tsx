@@ -36,6 +36,23 @@ export default function EditQuiz() {
     const [quizDescription, setQuizDescription] = useState("");
     const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
     const [coverPreview, setCoverPreview] = useState<string | null>(null);
+    const [backgroundColor, setBackgroundColor] = useState("");
+
+    const colors = [
+        "", 
+        "#ef4444", 
+        "#f97316", 
+        "#f59e0b", 
+        "#84cc16", 
+        "#10b981", 
+        "#06b6d4", 
+        "#3b82f6", 
+        "#6366f1", 
+        "#8b5cf6", 
+        "#d946ef", 
+        "#f43f5e", 
+        "#1f2937", 
+    ];
 
     const [questions, setQuestions] = useState<Question[]>([]);
 
@@ -53,6 +70,7 @@ export default function EditQuiz() {
 
                 setQuizTitle(quiz.title);
                 setQuizDescription(quiz.description);
+                setBackgroundColor(quiz.backgroundColor || "");
                 if (quiz.coverImage) {
                     setCoverPreview(`http://localhost:5000${quiz.coverImage}`);
                 }
@@ -224,6 +242,7 @@ export default function EditQuiz() {
                     title: quizTitle,
                     description: quizDescription,
                     coverImage: coverImageUrl,
+                    backgroundColor,
                     questions: questionsWithImages,
                 }),
             });
@@ -321,6 +340,34 @@ export default function EditQuiz() {
                                         rows={4}
                                         className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:outline-none transition"
                                     />
+                                </div>
+
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Arkaplan Rengi (İsteğe Bağlı)
+                                    </label>
+                                    <div className="flex flex-wrap gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => setBackgroundColor("")}
+                                            className={`w-10 h-10 rounded-full border-2 transition-all ${backgroundColor === "" ? "border-orange-600 ring-2 ring-orange-200" : "border-gray-300"
+                                                } flex items-center justify-center bg-gray-50`}
+                                            title="Varsayılan"
+                                        >
+                                            <span className="text-xs text-gray-500">Yok</span>
+                                        </button>
+                                        {colors.filter(c => c).map((color) => (
+                                            <button
+                                                key={color}
+                                                type="button"
+                                                onClick={() => setBackgroundColor(color)}
+                                                className={`w-10 h-10 rounded-full border-2 transition-all ${backgroundColor === color ? "border-orange-600 ring-2 ring-orange-200 scale-110" : "border-transparent"
+                                                    }`}
+                                                style={{ backgroundColor: color }}
+                                                title={color}
+                                            />
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         </section>
