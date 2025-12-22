@@ -77,29 +77,27 @@ export default function PlayerGame() {
 
 
   const Header = quizInfo && (
-    <div className="absolute top-5 left-5 flex items-center gap-4 z-50">
+    <>
       {quizInfo.coverImage && (
-        <img
-          src={`http://localhost:5000${quizInfo.coverImage}`}
-          alt="Şirket Logosu"
-          className="
-          h-20 
-          max-w-[200px] 
-          object-contain 
-          bg-white 
-          px-4 
-          py-2 
-          rounded-lg 
-          shadow-md
-        "
-        />
+        <div className="absolute top-5 left-5 z-50">
+          <img
+            src={`http://localhost:5000${quizInfo.coverImage}`}
+            alt="Şirket Logosu"
+            className="h-20 max-w-[200px] object-contain bg-white px-4 py-2 rounded-lg shadow-md"
+          />
+        </div>
       )}
       {quizInfo.title && (
-        <span className="text-gray-900 font-medium text-lg tracking-tight">
-          {quizInfo.title}
-        </span>
+        <div className="absolute top-5 left-1/2 transform -translate-x-1/2 z-50 text-center">
+          <span
+            className={`font-bold text-3xl tracking-tight ${quizInfo.backgroundColor ? "text-white drop-shadow-md" : "text-slate-900"
+              }`}
+          >
+            {quizInfo.title}
+          </span>
+        </div>
       )}
-    </div>
+    </>
   );
 
 
@@ -408,7 +406,7 @@ export default function PlayerGame() {
   if (gameState.currentPhase === "leaderboard") {
     return (
       <div
-        className="min-h-screen p-6 flex flex-col items-center relative"
+        className="min-h-screen p-6 pt-24 flex flex-col items-center relative"
         style={{
           backgroundColor: quizInfo?.backgroundColor || undefined,
           color: quizInfo?.backgroundColor ? "white" : undefined
