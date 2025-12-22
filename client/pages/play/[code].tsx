@@ -33,6 +33,7 @@ interface Question {
   durationSeconds: number;
   image?: string;
   isAiGenerated?: boolean;
+  audio?: string;
 }
 
 
@@ -72,6 +73,8 @@ export default function PlayerGame() {
   const [timer, setTimer] = useState(0);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [wheelWinner, setWheelWinner] = useState("");
+  const [nextQuestionHasAudio, setNextQuestionHasAudio] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const [wheelWinnerShown, setWheelWinnerShown] = useState(false);
 
@@ -139,7 +142,10 @@ export default function PlayerGame() {
       setCurrentQuestion(data.question);
       setTimer(data.question.durationSeconds);
       setSelectedOption(null);
+      setTimer(data.question.durationSeconds);
+      setSelectedOption(null);
       setWheelWinner("");
+      setNextQuestionHasAudio(false);
     });
 
     socket.on("show-wheel", () => {
@@ -154,6 +160,7 @@ export default function PlayerGame() {
     socket.on("show-leaderboard", (data: any) => {
       setGameState((prev) => ({ ...prev, currentPhase: "leaderboard" }));
       setLeaderboard(data.leaderboard);
+      setNextQuestionHasAudio(data.nextQuestionHasAudio || false);
     });
 
     socket.on("join-error", (msg: string) => {
@@ -211,6 +218,12 @@ export default function PlayerGame() {
       return () => clearInterval(interval);
     }
   }, [gameState.currentPhase, timer]);
+
+  useEffect(() => {
+    if (gameState.currentPhase === "question" && currentQuestion?.audio && audioRef.current) {
+      audioRef.current.play().catch(e => console.log("Audio play error:", e));
+    }
+  }, [gameState.currentPhase, currentQuestion]);
 
   const handleJoin = () => {
     const nick = nickname.trim();
@@ -461,6 +474,14 @@ export default function PlayerGame() {
         <div className={`mt-auto pt-8 text-sm ${quizInfo?.backgroundColor ? "text-white/80" : "text-blue-300"}`}>
           Diğer soruya geçilmesi bekleniyor...
         </div>
+
+        {nextQuestionHasAudio && (
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-red-600/90 text-white px-8 py-6 rounded-2xl shadow-2xl z-50 animate-pulse text-center">
+            <span className="text-4xl block mb-2">🔊</span>
+            <h3 className="text-2xl font-bold">Lütfen Sessiz Olun!</h3>
+            <p className="text-lg">Sıradaki soru sesli sorudur.</p>
+          </div>
+        )}
       </div>
     );
   }
@@ -499,8 +520,16 @@ export default function PlayerGame() {
                 alt="Soru Görseli"
                 className="max-h-64 rounded-lg shadow-md object-contain"
               />
+
             </div>
           )}
+
+          {currentQuestion?.audio && (
+            <div className="mb-4">
+              <audio ref={audioRef} src={`http://localhost:5000${currentQuestion.audio}`} controls className="mx-auto" />
+            </div>
+          )}
+
           <span className="inline-block bg-indigo-100 text-indigo-700 font-bold px-3 py-1 rounded-full text-sm mb-4">
             {timer} Saniye
           </span>

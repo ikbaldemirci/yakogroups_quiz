@@ -22,6 +22,8 @@ interface Question {
     order: number;
     imageFile?: File | null;
     image?: string;
+    audioFile?: File | null;
+    audio?: string;
 }
 
 export default function EditQuiz() {
@@ -89,6 +91,7 @@ export default function EditQuiz() {
                         isAiGenerated: q.isAiGenerated,
                         order: q.order,
                         image: q.image,
+                        audio: q.audio,
                     }));
                     setQuestions(mappedQuestions);
                 } else {
@@ -132,6 +135,12 @@ export default function EditQuiz() {
     const handleImageChange = (index: number, file: File | null) => {
         const newQuestions = [...questions];
         newQuestions[index].imageFile = file;
+        setQuestions(newQuestions);
+    };
+
+    const handleAudioChange = (index: number, file: File | null) => {
+        const newQuestions = [...questions];
+        newQuestions[index].audioFile = file;
         setQuestions(newQuestions);
     };
 
@@ -225,9 +234,26 @@ export default function EditQuiz() {
                             imageUrl = data.url;
                         }
                     }
+
+                    let audioUrl = q.audio;
+                    if (q.audioFile) {
+                        const formData = new FormData();
+                        formData.append("file", q.audioFile);
+                        const res = await fetch("http://localhost:5000/api/upload?type=audio", {
+                            method: "POST",
+                            headers: { Authorization: `Bearer ${token}` },
+                            body: formData,
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            audioUrl = data.url;
+                        }
+                    }
+
                     return {
                         ...q,
                         image: imageUrl,
+                        audio: audioUrl,
                     };
                 })
             );
@@ -436,6 +462,32 @@ export default function EditQuiz() {
                                                                     className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
                                                                 />
                                                                 {q.imageFile && <p className="text-xs text-green-600 mt-1">Yeni Seçilen: {q.imageFile.name}</p>}
+                                                            </div>
+
+                                                            <div className="mb-4">
+                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                    Soru Sesi (İsteğe Bağlı - Maks 5MB)
+                                                                </label>
+                                                                {q.audio && !q.audioFile && (
+                                                                    <div className="mb-2 text-xs text-gray-600">
+                                                                        Mevcut Ses: <a href={`http://localhost:5000${q.audio}`} target="_blank" className="text-blue-500 underline">Dinle</a>
+                                                                    </div>
+                                                                )}
+                                                                <input
+                                                                    type="file"
+                                                                    accept="audio/mpeg,audio/wav"
+                                                                    onChange={(e) => {
+                                                                        const file = e.target.files?.[0];
+                                                                        if (file && file.size > 5 * 1024 * 1024) {
+                                                                            alert("Ses dosyası 5MB'dan büyük olamaz!");
+                                                                            e.target.value = "";
+                                                                            return;
+                                                                        }
+                                                                        handleAudioChange(qIndex, file || null);
+                                                                    }}
+                                                                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                                                                />
+                                                                {q.audioFile && <p className="text-xs text-green-600 mt-1">Yeni Seçilen Ses: {q.audioFile.name}</p>}
                                                             </div>
 
                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">

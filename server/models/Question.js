@@ -60,6 +60,11 @@ const QuestionSchema = new mongoose.Schema(
       default: null,
     },
 
+    audio: {
+      type: String,
+      default: null,
+    },
+
     order: {
       type: Number,
       required: true,

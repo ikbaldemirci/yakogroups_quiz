@@ -34,6 +34,7 @@ export const createQuiz = async (req, res) => {
           durationSeconds: q.durationSeconds,
           isAiGenerated: q.isAiGenerated || false,
           image: q.image || null,
+          audio: q.audio || null,
         };
       });
 
@@ -116,6 +117,7 @@ export const updateQuiz = async (req, res) => {
           durationSeconds: q.durationSeconds,
           isAiGenerated: q.isAiGenerated || false,
           image: q.image || null,
+          audio: q.audio || null,
         };
       });
 

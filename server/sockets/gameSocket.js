@@ -353,12 +353,19 @@ export const gameSocket = () => {
           .sort((a, b) => b.score - a.score)
           .slice(0, 5);
 
+
+
+        const questions = await Question.find({ quiz: session.quiz }).sort({ order: 1 }).lean();
+        const nextQuestion = questions[session.currentQuestionIndex + 1];
+        const nextQuestionHasAudio = !!nextQuestion?.audio;
+
         io.to(lobbyCode).emit("show-leaderboard", {
           leaderboard,
           allPlayers: session.players.map((p) => ({
             nickname: p.nickname,
             score: p.score,
           })),
+          nextQuestionHasAudio,
         });
         return;
       }

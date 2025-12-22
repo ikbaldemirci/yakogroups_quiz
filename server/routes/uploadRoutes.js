@@ -24,7 +24,7 @@ const upload = multer({
   storage: storage,
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const filetypes = /jpeg|jpg|png|webp/;
+    const filetypes = /jpeg|jpg|png|webp|mp3|mpeg|wav/;
     const mimetype = filetypes.test(file.mimetype);
     const extname = filetypes.test(
       path.extname(file.originalname).toLowerCase()
@@ -33,7 +33,7 @@ const upload = multer({
     if (mimetype && extname) {
       return cb(null, true);
     }
-    cb(new Error("Only images are allowed (jpeg, jpg, png, webp)"));
+    cb(new Error("Desteklenmeyen dosya formatı (jpeg, jpg, png, webp, mp3, wav)"));
   },
 });
 
