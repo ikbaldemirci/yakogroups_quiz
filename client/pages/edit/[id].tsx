@@ -7,6 +7,20 @@ import {
     Draggable,
     DropResult,
 } from "@hello-pangea/dnd";
+import { ColorPicker, useColor } from "react-color-palette";
+import "react-color-palette/css";
+
+import "react-color-palette/css";
+
+const QuizColorPicker = ({ initialColor, onChange }: { initialColor: string, onChange: (hex: string) => void }) => {
+    const [color, setColor] = useColor(initialColor);
+
+    useEffect(() => {
+        onChange(color.hex);
+    }, [color]);
+
+    return <ColorPicker color={color} onChange={setColor} height={120} />;
+};
 
 interface Option {
     text: string;
@@ -40,21 +54,6 @@ export default function EditQuiz() {
     const [coverPreview, setCoverPreview] = useState<string | null>(null);
     const [backgroundColor, setBackgroundColor] = useState("");
 
-    const colors = [
-        "",
-        "#ef4444",
-        "#f97316",
-        "#f59e0b",
-        "#84cc16",
-        "#10b981",
-        "#06b6d4",
-        "#3b82f6",
-        "#6366f1",
-        "#8b5cf6",
-        "#d946ef",
-        "#f43f5e",
-        "#1f2937",
-    ];
 
     const [questions, setQuestions] = useState<Question[]>([]);
 
@@ -372,27 +371,21 @@ export default function EditQuiz() {
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Arkaplan Rengi (İsteğe Bağlı)
                                     </label>
-                                    <div className="flex flex-wrap gap-3">
+                                    <div className="space-y-4">
                                         <button
                                             type="button"
                                             onClick={() => setBackgroundColor("")}
-                                            className={`w-10 h-10 rounded-full border-2 transition-all ${backgroundColor === "" ? "border-orange-600 ring-2 ring-orange-200" : "border-gray-300"
-                                                } flex items-center justify-center bg-gray-50`}
-                                            title="Varsayılan"
+                                            className={`px-4 py-2 rounded-lg border text-sm transition-all ${backgroundColor === "" ? "bg-orange-50 border-orange-600 text-orange-700 font-medium" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"}`}
                                         >
-                                            <span className="text-xs text-gray-500">Yok</span>
+                                            Varsayılan (Renk Yok)
                                         </button>
-                                        {colors.filter(c => c).map((color) => (
-                                            <button
-                                                key={color}
-                                                type="button"
-                                                onClick={() => setBackgroundColor(color)}
-                                                className={`w-10 h-10 rounded-full border-2 transition-all ${backgroundColor === color ? "border-orange-600 ring-2 ring-orange-200 scale-110" : "border-transparent"
-                                                    }`}
-                                                style={{ backgroundColor: color }}
-                                                title={color}
+                                        <div className="custom-color-picker">
+                                            <QuizColorPicker
+                                                key={backgroundColor ? "has-color" : "no-color"}
+                                                initialColor={backgroundColor || "#ffffff"}
+                                                onChange={setBackgroundColor}
                                             />
-                                        ))}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
