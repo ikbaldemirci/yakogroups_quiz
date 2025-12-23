@@ -24,17 +24,21 @@ const upload = multer({
   storage: storage,
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const filetypes = /jpeg|jpg|png|webp|mp3|mpeg|wav/;
-    const mimetype = filetypes.test(file.mimetype);
-    const extname = filetypes.test(
-      path.extname(file.originalname).toLowerCase()
-    );
+  const allowedMimeTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "audio/mpeg", // same with mp3 file 
+    "audio/wav",
+  ];
 
-    if (mimetype && extname) {
-      return cb(null, true);
-    }
-    cb(new Error("Desteklenmeyen dosya formatı (jpeg, jpg, png, webp, mp3, wav)"));
-  },
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    return cb(null, true);
+  }
+
+  cb(new Error("Unsupported file format (jpeg, jpg, png, webp, mp3, wav)"));
+},
+
 });
 
 router.post("/", upload.single("file"), (req, res) => {
