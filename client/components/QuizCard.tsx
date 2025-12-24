@@ -6,6 +6,7 @@ interface Quiz {
     description: string;
     coverImage?: string;
     createdAt: string;
+    updatedAt: string;
     company?: {
         name: string;
     };
@@ -52,8 +53,12 @@ export default function QuizCard({ quiz, onStartSession, onDelete, showCompanyBa
                     {quiz.description || "Açıklama girilmemiş."}
                 </p>
 
-                <div className="flex justify-end items-center text-[11px] text-gray-400 mb-4">
-                    <span>{new Date(quiz.createdAt).toLocaleDateString("tr-TR")}</span>
+                <div className="flex justify-end items-center text-[10px] text-gray-400 mb-4 italic">
+                    <span>
+                        {quiz.updatedAt && new Date(quiz.updatedAt) > new Date(new Date(quiz.createdAt).getTime() + 1000)
+                            ? `Son Güncelleme: ${new Date(quiz.updatedAt).toLocaleDateString("tr-TR")}`
+                            : new Date(quiz.createdAt).toLocaleDateString("tr-TR")}
+                    </span>
                 </div>
 
                 <div className="flex gap-2">

@@ -7,6 +7,7 @@ interface Quiz {
     description: string;
     coverImage?: string;
     createdAt: string;
+    updatedAt: string;
     company?: {
         _id: string;
         name: string;
