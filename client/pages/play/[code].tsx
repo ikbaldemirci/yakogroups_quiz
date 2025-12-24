@@ -142,8 +142,6 @@ export default function PlayerGame() {
       setCurrentQuestion(data.question);
       setTimer(data.question.durationSeconds);
       setSelectedOption(null);
-      setTimer(data.question.durationSeconds);
-      setSelectedOption(null);
       setWheelWinner("");
       setNextQuestionHasAudio(false);
     });
@@ -221,6 +219,10 @@ export default function PlayerGame() {
 
   useEffect(() => {
     if (gameState.currentPhase === "question" && currentQuestion?.audio && audioRef.current) {
+      const elapsed = currentQuestion.durationSeconds - timer;
+      if (elapsed > 0) {
+        audioRef.current.currentTime = elapsed;
+      }
       audioRef.current.play().catch(e => console.log("Audio play error:", e));
     }
   }, [gameState.currentPhase, currentQuestion]);
