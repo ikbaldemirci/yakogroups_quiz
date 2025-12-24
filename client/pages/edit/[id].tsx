@@ -33,9 +33,9 @@ interface Question {
     isAiGenerated: boolean;
     order: number;
     imageFile?: File | null;
-    image?: string;
+    image?: string | null;
     audioFile?: File | null;
-    audio?: string;
+    audio?: string | null;
 }
 
 export default function EditQuiz() {
@@ -438,15 +438,35 @@ export default function EditQuiz() {
                                                             </div>
 
                                                             <div className="mb-4">
-                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                                    Soru Görseli
-                                                                </label>
+                                                                <div className="flex justify-between items-center mb-1">
+                                                                    <label className="block text-sm font-medium text-gray-700">
+                                                                        Soru Görseli
+                                                                    </label>
+                                                                    {q.imageFile ? (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => handleImageChange(qIndex, null)}
+                                                                            className="text-xs text-red-500 hover:text-red-700 font-medium"
+                                                                        >
+                                                                            Seçimi Kaldır
+                                                                        </button>
+                                                                    ) : q.image ? (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => handleQuestionChange(qIndex, "image", null)}
+                                                                            className="text-xs text-red-500 hover:text-red-700 font-medium"
+                                                                        >
+                                                                            Görseli Sil
+                                                                        </button>
+                                                                    ) : null}
+                                                                </div>
                                                                 {q.image && !q.imageFile && (
                                                                     <div className="mb-2">
                                                                         <img src={`http://localhost:5000${q.image}`} className="h-20 object-contain rounded border" />
                                                                     </div>
                                                                 )}
                                                                 <input
+                                                                    key={q.imageFile ? q.imageFile.name : `existing-${q.image || 'none'}`}
                                                                     type="file"
                                                                     accept="image/*"
                                                                     onChange={(e) => handleImageChange(qIndex, e.target.files ? e.target.files[0] : null)}
@@ -456,15 +476,35 @@ export default function EditQuiz() {
                                                             </div>
 
                                                             <div className="mb-4">
-                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                                    Soru Sesi (İsteğe Bağlı - Maks 5MB)
-                                                                </label>
+                                                                <div className="flex justify-between items-center mb-1">
+                                                                    <label className="block text-sm font-medium text-gray-700">
+                                                                        Soru Sesi (İsteğe Bağlı - Maks 5MB)
+                                                                    </label>
+                                                                    {q.audioFile ? (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => handleAudioChange(qIndex, null)}
+                                                                            className="text-xs text-red-500 hover:text-red-700 font-medium"
+                                                                        >
+                                                                            Seçimi Kaldır
+                                                                        </button>
+                                                                    ) : q.audio ? (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => handleQuestionChange(qIndex, "audio", null)}
+                                                                            className="text-xs text-red-500 hover:text-red-700 font-medium"
+                                                                        >
+                                                                            Sesi Sil
+                                                                        </button>
+                                                                    ) : null}
+                                                                </div>
                                                                 {q.audio && !q.audioFile && (
                                                                     <div className="mb-2 text-xs text-gray-600">
                                                                         Mevcut Ses: <a href={`http://localhost:5000${q.audio}`} target="_blank" className="text-blue-500 underline">Dinle</a>
                                                                     </div>
                                                                 )}
                                                                 <input
+                                                                    key={q.audioFile ? q.audioFile.name : `existing-${q.audio || 'none'}`}
                                                                     type="file"
                                                                     accept="audio/mpeg,audio/wav"
                                                                     onChange={(e) => {

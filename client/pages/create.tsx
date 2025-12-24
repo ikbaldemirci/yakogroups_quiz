@@ -410,10 +410,22 @@ export default function CreateQuiz() {
                               </div>
 
                               <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                  Soru Görseli (İsteğe Bağlı)
-                                </label>
+                                <div className="flex justify-between items-center mb-1">
+                                  <label className="block text-sm font-medium text-gray-700">
+                                    Soru Görseli (İsteğe Bağlı)
+                                  </label>
+                                  {q.imageFile && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleImageChange(qIndex, null)}
+                                      className="text-xs text-red-500 hover:text-red-700 font-medium"
+                                    >
+                                      Görseli Kaldır
+                                    </button>
+                                  )}
+                                </div>
                                 <input
+                                  key={q.imageFile ? q.imageFile.name : "no-image"}
                                   type="file"
                                   accept="image/*"
                                   onChange={(e) => handleImageChange(qIndex, e.target.files ? e.target.files[0] : null)}
@@ -423,10 +435,22 @@ export default function CreateQuiz() {
                               </div>
 
                               <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                  Soru Sesi (İsteğe Bağlı - Maks 5MB)
-                                </label>
+                                <div className="flex justify-between items-center mb-1">
+                                  <label className="block text-sm font-medium text-gray-700">
+                                    Soru Sesi (İsteğe Bağlı - Maks 5MB)
+                                  </label>
+                                  {q.audioFile && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleAudioChange(qIndex, null)}
+                                      className="text-xs text-red-500 hover:text-red-700 font-medium"
+                                    >
+                                      Sesi Kaldır
+                                    </button>
+                                  )}
+                                </div>
                                 <input
+                                  key={q.audioFile ? q.audioFile.name : "no-audio"}
                                   type="file"
                                   accept="audio/mpeg,audio/wav"
                                   onChange={(e) => {
