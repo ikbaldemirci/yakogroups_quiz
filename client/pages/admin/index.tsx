@@ -3,22 +3,24 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import ProtectedRoute from "../../components/ProtectedRoute";
 import { useAuth } from "../../context/AuthContext";
+import QuizCard from "../../components/QuizCard";
+import SuperAdminView from "../../components/SuperAdminView";
 
 interface Quiz {
   _id: string;
   title: string;
   description: string;
-  durationMinutes: number;
   coverImage?: string;
   createdAt: string;
   company?: {
+    _id: string;
     name: string;
   };
 }
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { role } = useAuth();
+  const { role, companyName } = useAuth();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -26,7 +28,7 @@ export default function AdminDashboard() {
     const fetchQuizzes = async () => {
       try {
         const token = localStorage.getItem("token");
-        if (!token) return; // Token yoksa fetch atmayalım, ProtectedRoute zaten yönlendirecek.
+        if (!token) return;
 
         const res = await fetch("http://localhost:5000/api/quizzes", {
           headers: { Authorization: `Bearer ${token}` }
@@ -65,112 +67,100 @@ export default function AdminDashboard() {
     }
   };
 
+  const deleteQuiz = async (quizId: string) => {
+    const token = localStorage.getItem("token");
+    if (!confirm("Bu sınavı kalıcı olarak silmek istediğine emin misin?")) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/quizzes/hard/${quizId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setQuizzes(quizzes.filter((q) => q._id !== quizId));
+      } else {
+        alert("Silme işlemi başarısız oldu.");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-100 p-8 font-sans">
-        <header className="max-w-6xl mx-auto flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              {role === "super-admin" ? "Sistem Genel Paneli" : "Admin Panel"}
-            </h1>
-            <p className="text-gray-600">
-              {role === "super-admin"
-                ? "Tüm şirketlerin sınavlarını buradan görebilirsiniz."
-                : "Sınavları yönetin ve oturum başlatın"}
-            </p>
-          </div>
-          <Link
-            href="/create"
-            className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition shadow-lg font-medium"
-          >
-            + Yeni Sınav Oluştur
-          </Link>
-        </header>
+      <div className="min-h-screen bg-gray-50 pb-20 font-sans">
+        <div className="bg-white border-b border-gray-200 mb-8 px-8 py-6">
+          <header className="max-w-6xl mx-auto flex justify-between items-end">
+            <div>
+              <nav className="flex items-center gap-2 text-xs text-gray-400 mb-2 uppercase tracking-widest font-bold">
+                <span>Dashboard</span>
+                <span>/</span>
+                <span className="text-indigo-600">{role === "super-admin" ? "Sistem Genel" : "Admin"}</span>
+              </nav>
+              <h1 className="text-4xl font-black text-gray-900 tracking-tight">
+                {role === "super-admin" ? "Sistem Genel Paneli" : "Sınav Dashboard"}
+              </h1>
+              <p className="text-gray-500 mt-1 max-w-md">
+                {role === "super-admin"
+                  ? "Tüm şirketlerin ekosistemini ve sınavlarını buradan yönetebilirsiniz."
+                  : "Sınavlarınızı oluşturun, düzenleyin ve katılımcılar için yeni oturumlar başlatın."}
+              </p>
+            </div>
+            <Link
+              href="/create"
+              className="bg-indigo-600 text-white px-8 py-4 rounded-2xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200 font-bold flex items-center gap-3 active:scale-95"
+            >
+              <span className="text-xl">+</span> Yeni Sınav Oluştur
+            </Link>
+          </header>
+        </div>
 
-        <main className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <main className="max-w-6xl mx-auto px-8">
           {loading ? (
-            <div className="col-span-3 text-center py-12">
-              <p className="text-gray-500 animate-pulse">Yükleniyor...</p>
+            <div className="col-span-3 text-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent mb-4"></div>
+              <p className="text-gray-400 font-medium">Veriler yükleniyor, lütfen bekleyin...</p>
             </div>
-          ) : quizzes.length === 0 ? (
-            <div className="col-span-3 text-center py-12 bg-white rounded-lg shadow">
-              <p className="text-gray-500">Henüz hiç sınav oluşturulmamış.</p>
-            </div>
+          ) : role === "super-admin" ? (
+            <SuperAdminView
+              quizzes={quizzes}
+              currentCompanyName={companyName}
+              onStartSession={createSession}
+              onDelete={deleteQuiz}
+            />
           ) : (
-            quizzes.map((quiz) => (
-              <div
-                key={quiz._id}
-                className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow border border-gray-200"
-              >
-                {quiz.coverImage ? (
-                  <div className="h-48 w-full relative">
-                    <img
-                      src={`http://localhost:5000${quiz.coverImage}`}
-                      alt={quiz.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ) : (
-                  <div className="h-48 w-full bg-gray-200 flex items-center justify-center">
-                    <span className="text-gray-400">Görsel Yok</span>
-                  </div>
-                )}
-
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 truncate">
-                    {quiz.title}
-                  </h3>
-                  <p className="text-gray-600 text-sm line-clamp-2 mb-4 h-10">
-                    {quiz.description || "Açıklama girilmemiş."}
-                  </p>
-
-                  <div className="flex justify-end items-center text-sm text-gray-500 mb-6">
-                    <span>
-                      {new Date(quiz.createdAt).toLocaleDateString("tr-TR")}
-                    </span>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => createSession(quiz._id)}
-                      className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition font-medium"
-                    >
-                      Oturum Başlat
-                    </button>
-                    <Link
-                      href={`/edit/${quiz._id}`}
-                      className="bg-indigo-100 text-indigo-600 px-3 py-2 rounded-lg hover:bg-indigo-200 transition flex items-center justify-center"
-                      title="Düzenle"
-                    >
-                      ✏️
-                    </Link>
-                    <button
-                      onClick={async () => {
-                        const token = localStorage.getItem("token");
-                        if (!confirm("Bu sınavı kalıcı olarak silmek istediğine emin misin?")) return;
-                        try {
-                          const res = await fetch(`http://localhost:5000/api/quizzes/hard/${quiz._id}`, {
-                            method: "DELETE",
-                            headers: { Authorization: `Bearer ${token}` }
-                          });
-                          if (res.ok) {
-                            setQuizzes(quizzes.filter((q) => q._id !== quiz._id));
-                          } else {
-                            alert("Silme işlemi başarısız oldu.");
-                          }
-                        } catch (err) {
-                          console.error(err);
-                        }
-                      }}
-                      className="bg-red-100 text-red-600 px-3 rounded-lg hover:bg-red-200 transition"
-                      title="Sınavı Sil"
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                </div>
+            <>
+              <div className="flex items-center gap-3 mb-8 border-l-4 border-indigo-600 pl-4">
+                <h2 className="text-2xl font-bold text-gray-900">Sınavlarım</h2>
+                <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2.5 py-1 rounded-full">
+                  {quizzes.length}
+                </span>
               </div>
-            ))
+
+              {quizzes.length === 0 ? (
+                <div className="text-center py-24 bg-white rounded-3xl shadow-sm border border-gray-100">
+                  <div className="text-5xl mb-4">📝</div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Henüz sınavın yok</h3>
+                  <p className="text-gray-500 mb-8">Hemen ilk sınavını oluşturarak başlayabilirsin.</p>
+                  <Link
+                    href="/create"
+                    className="text-indigo-600 font-bold hover:underline"
+                  >
+                    + Yeni Sınav Oluştur
+                  </Link>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {quizzes.map((quiz) => (
+                    <QuizCard
+                      key={quiz._id}
+                      quiz={quiz}
+                      onStartSession={createSession}
+                      onDelete={deleteQuiz}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </main>
       </div>
