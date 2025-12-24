@@ -12,6 +12,8 @@ import { ColorPicker, useColor } from "react-color-palette";
 import "react-color-palette/css";
 
 
+import { getAudioDuration } from "../utils/audioHelper";
+
 interface Option {
   text: string;
 }
@@ -27,6 +29,7 @@ interface Question {
   image?: string;
   audioFile?: File | null;
   audio?: string;
+  audioDuration?: number;
 }
 
 export default function CreateQuiz() {
@@ -82,6 +85,16 @@ export default function CreateQuiz() {
     value: any
   ) => {
     const newQuestions = [...questions];
+    const question = newQuestions[index];
+
+    if (field === "durationSeconds") {
+      const newDuration = Number(value);
+      if (question.audioDuration && newDuration < question.audioDuration) {
+        alert(`Süre, ses dosyasının süresinden (${Math.ceil(question.audioDuration)}s) kısa olamaz!`);
+        return;
+      }
+    }
+
     newQuestions[index] = { ...newQuestions[index], [field]: value };
     setQuestions(newQuestions);
   };
@@ -92,9 +105,28 @@ export default function CreateQuiz() {
     setQuestions(newQuestions);
   };
 
-  const handleAudioChange = (index: number, file: File | null) => {
+  const handleAudioChange = async (index: number, file: File | null) => {
     const newQuestions = [...questions];
-    newQuestions[index].audioFile = file;
+
+    if (file) {
+      try {
+        const duration = await getAudioDuration(file);
+        if (duration > newQuestions[index].durationSeconds) {
+          alert(`Ses dosyası süresi (${Math.ceil(duration)}s), soru süresinden (${newQuestions[index].durationSeconds}s) uzun olamaz! Lütfen önce soru süresini artırın.`);
+          return;
+        }
+        newQuestions[index].audioFile = file;
+        newQuestions[index].audioDuration = duration;
+      } catch (e) {
+        console.error("Error checking audio duration", e);
+        alert("Ses dosyası süresi okunamadı.");
+        return;
+      }
+    } else {
+      newQuestions[index].audioFile = null;
+      newQuestions[index].audioDuration = undefined;
+    }
+
     setQuestions(newQuestions);
   };
 
@@ -464,7 +496,7 @@ export default function CreateQuiz() {
                                   }}
                                   className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
                                 />
-                                {q.audioFile && <p className="text-xs text-green-600 mt-1">Seçilen Ses: {q.audioFile.name}</p>}
+                                {q.audioFile && <p className="text-xs text-green-600 mt-1">Seçilen Ses: {q.audioFile.name} {q.audioDuration && `(${Math.ceil(q.audioDuration)}s)`}</p>}
                               </div>
 
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">

@@ -10,6 +10,8 @@ import {
 import { ColorPicker, useColor } from "react-color-palette";
 import "react-color-palette/css";
 
+import { getAudioDuration } from "../../utils/audioHelper";
+
 const QuizColorPicker = ({ initialColor, onChange }: { initialColor: string, onChange: (hex: string) => void }) => {
     const [color, setColor] = useColor(initialColor);
 
@@ -36,6 +38,7 @@ interface Question {
     image?: string | null;
     audioFile?: File | null;
     audio?: string | null;
+    audioDuration?: number; 
 }
 
 export default function EditQuiz() {
@@ -125,6 +128,17 @@ export default function EditQuiz() {
         value: any
     ) => {
         const newQuestions = [...questions];
+        const question = newQuestions[index];
+
+        if (field === "durationSeconds") {
+            const newDuration = Number(value);
+            // Check if there's an audio file and if new duration is shorter than audio
+            if (question.audioDuration && newDuration < question.audioDuration) {
+                alert(`Süre, ses dosyasının süresinden (${Math.ceil(question.audioDuration)}s) kısa olamaz!`);
+                return;
+            }
+        }
+
         newQuestions[index] = { ...newQuestions[index], [field]: value };
         setQuestions(newQuestions);
     };
@@ -135,9 +149,28 @@ export default function EditQuiz() {
         setQuestions(newQuestions);
     };
 
-    const handleAudioChange = (index: number, file: File | null) => {
+    const handleAudioChange = async (index: number, file: File | null) => {
         const newQuestions = [...questions];
-        newQuestions[index].audioFile = file;
+
+        if (file) {
+            try {
+                const duration = await getAudioDuration(file);
+                if (duration > newQuestions[index].durationSeconds) {
+                    alert(`Ses dosyası süresi (${Math.ceil(duration)}s), soru süresinden (${newQuestions[index].durationSeconds}s) uzun olamaz! Lütfen önce soru süresini artırın.`);
+                    return;
+                }
+                newQuestions[index].audioFile = file;
+                newQuestions[index].audioDuration = duration;
+            } catch (e) {
+                console.error("Error reading audio duration", e);
+                alert("Ses dosyası süresi okunamadı.");
+                return;
+            }
+        } else {
+            newQuestions[index].audioFile = null;
+            newQuestions[index].audioDuration = undefined;
+        }
+
         setQuestions(newQuestions);
     };
 
@@ -507,18 +540,18 @@ export default function EditQuiz() {
                                                                     key={q.audioFile ? q.audioFile.name : `existing-${q.audio || 'none'}`}
                                                                     type="file"
                                                                     accept="audio/mpeg,audio/wav"
-                                                                    onChange={(e) => {
+                                                                    onChange={async (e) => {
                                                                         const file = e.target.files?.[0];
                                                                         if (file && file.size > 5 * 1024 * 1024) {
                                                                             alert("Ses dosyası 5MB'dan büyük olamaz!");
                                                                             e.target.value = "";
                                                                             return;
                                                                         }
-                                                                        handleAudioChange(qIndex, file || null);
+                                                                        await handleAudioChange(qIndex, file || null);
                                                                     }}
                                                                     className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
                                                                 />
-                                                                {q.audioFile && <p className="text-xs text-green-600 mt-1">Yeni Seçilen Ses: {q.audioFile.name}</p>}
+                                                                {q.audioFile && <p className="text-xs text-green-600 mt-1">Yeni Seçilen Ses: {q.audioFile.name} {q.audioDuration && `(${Math.ceil(q.audioDuration)}s)`}</p>}
                                                             </div>
 
                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
