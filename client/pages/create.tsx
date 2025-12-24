@@ -139,28 +139,28 @@ export default function CreateQuiz() {
         throw new Error("Sınav başlığı gereklidir.");
       }
 
+      for (const [index, q] of questions.entries()) {
+        if (q.text.trim().length < 3) {
+          setError(
+            `Soru ${index + 1}: Soru metni en az 3 karakter olmalıdır.`
+          );
+          setLoading(false);
+          return;
+        }
+        if (q.durationSeconds < 5) {
+          setError(`Soru ${index + 1}: Süre en az 5 saniye olmalıdır.`);
+          setLoading(false);
+          return;
+        }
+        if (q.options.some((o) => !o.text.trim())) {
+          setError(`Soru ${index + 1}: Tüm şıklar doldurulmalıdır.`);
+          setLoading(false);
+          return;
+        }
+      }
+
       let coverImageUrl = "";
       if (coverImageFile) {
-        for (const [index, q] of questions.entries()) {
-          if (q.text.trim().length < 3) {
-            setError(
-              `Soru ${index + 1}: Soru metni en az 3 karakter olmalıdır.`
-            );
-            setLoading(false);
-            return;
-          }
-          if (q.durationSeconds < 5) {
-            setError(`Soru ${index + 1}: Süre en az 5 saniye olmalıdır.`);
-            setLoading(false);
-            return;
-          }
-          if (q.options.some((o) => !o.text.trim())) {
-            setError(`Soru ${index + 1}: Tüm şıklar doldurulmalıdır.`);
-            setLoading(false);
-            return;
-          }
-        }
-
         const formData = new FormData();
         formData.append("file", coverImageFile);
 
