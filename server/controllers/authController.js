@@ -45,6 +45,7 @@ export const signup = async (req, res) => {
             name: company.name,
             email: company.email,
             role: company.role,
+            logo: company.logo,
             token: generateToken(company._id),
         });
     } catch (error) {
@@ -76,8 +77,28 @@ export const login = async (req, res) => {
             name: company.name,
             email: company.email,
             role: company.role,
+            logo: company.logo,
             token: generateToken(company._id),
         });
+    } catch (error) {
+        res.status(500).json({ message: "Sunucu hatası.", error: error.message });
+    }
+};
+
+export const updateCompanyLogo = async (req, res) => {
+    try {
+        const { logo } = req.body;
+        const company = await Company.findByIdAndUpdate(
+            req.company._id,
+            { logo },
+            { new: true }
+        ).select("-password");
+
+        if (!company) {
+            return res.status(404).json({ message: "Şirket bulunamadı." });
+        }
+
+        res.json(company);
     } catch (error) {
         res.status(500).json({ message: "Sunucu hatası.", error: error.message });
     }

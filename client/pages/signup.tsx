@@ -30,7 +30,7 @@ export default function Signup() {
                 throw new Error(data.message || "Kayıt olunamadı.");
             }
 
-            login(data.token, data.name, data.role);
+            login(data.token, data.name, data.role, data.logo);
             router.push("/admin");
         } catch (err: any) {
             setError(err.message);

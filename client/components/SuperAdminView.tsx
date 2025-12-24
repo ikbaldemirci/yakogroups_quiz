@@ -11,6 +11,7 @@ interface Quiz {
     company?: {
         _id: string;
         name: string;
+        logo?: string;
     };
 }
 
@@ -88,8 +89,16 @@ export default function SuperAdminView({ quizzes, currentCompanyName, onStartSes
                                 className="w-full flex items-center justify-between p-5 hover:bg-zinc-50 transition-colors text-left"
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 bg-zinc-100 rounded-lg flex items-center justify-center text-xl">
-                                        🏢
+                                    <div className="w-16 h-10 bg-zinc-100 rounded-lg flex items-center justify-center text-xl overflow-hidden border border-gray-100">
+                                        {companyQuizzes[0]?.company?.logo ? (
+                                            <img
+                                                src={`http://localhost:5000${companyQuizzes[0].company.logo}`}
+                                                alt={companyName}
+                                                className="w-full h-full object-contain bg-white p-1"
+                                            />
+                                        ) : (
+                                            "🏢"
+                                        )}
                                     </div>
                                     <div>
                                         <h3 className="font-bold text-gray-900">{companyName}</h3>

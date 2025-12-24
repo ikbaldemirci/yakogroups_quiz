@@ -16,12 +16,13 @@ interface Quiz {
   company?: {
     _id: string;
     name: string;
+    logo?: string;
   };
 }
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { role, companyName } = useAuth();
+  const { role, companyName, logo, updateLogo } = useAuth();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -86,25 +87,118 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const uploadRes = await fetch("http://localhost:5000/api/upload?type=logos", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      if (!uploadRes.ok) throw new Error("Logo yüklenemedi.");
+      const { url } = await uploadRes.json();
+
+      const updateRes = await fetch("http://localhost:5000/api/auth/logo", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ logo: url }),
+      });
+
+      if (!updateRes.ok) throw new Error("Şirket logosu güncellenemedi.");
+
+      updateLogo(url);
+      alert("Logo başarıyla güncellendi!");
+    } catch (err: any) {
+      alert("Hata: " + err.message);
+    }
+  };
+
+  const handleLogoDelete = async () => {
+    if (!confirm("Şirket logosunu silmek istediğine emin misin?")) return;
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:5000/api/auth/logo", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ logo: "" }),
+      });
+
+      if (!res.ok) throw new Error("Logo silinemedi.");
+
+      updateLogo("");
+      alert("Logo silindi!");
+    } catch (err: any) {
+      alert("Hata: " + err.message);
+    }
+  };
+
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50 pb-20 font-sans">
         <div className="bg-white border-b border-gray-200 mb-8 px-8 py-6">
           <header className="max-w-6xl mx-auto flex justify-between items-end">
-            <div>
-              <nav className="flex items-center gap-2 text-xs text-gray-400 mb-2 uppercase tracking-widest font-bold">
-                <span>Dashboard</span>
-                <span>/</span>
-                <span className="text-indigo-600">{role === "super-admin" ? "Sistem Genel" : "Admin"}</span>
-              </nav>
-              <h1 className="text-4xl font-black text-gray-900 tracking-tight">
-                {role === "super-admin" ? "Sistem Genel Paneli" : "Sınav Dashboard"}
-              </h1>
-              <p className="text-gray-500 mt-1 max-w-md">
-                {role === "super-admin"
-                  ? "Tüm şirketlerin ekosistemini ve sınavlarını buradan yönetebilirsiniz."
-                  : "Sınavlarınızı oluşturun, düzenleyin ve katılımcılar için yeni oturumlar başlatın."}
-              </p>
+            <div className="flex items-end gap-6">
+              <div className="relative group">
+                <div className="w-48 h-24 bg-gray-50 rounded-2xl flex items-center justify-center text-3xl border-2 border-dashed border-gray-200 overflow-hidden bg-white hover:border-indigo-400 transition-colors shadow-sm relative group">
+                  {logo ? (
+                    <>
+                      <img
+                        src={`http://localhost:5000${logo}`}
+                        alt="Company Logo"
+                        className="w-full h-full object-contain p-3"
+                      />
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleLogoDelete();
+                        }}
+                        className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity z-20 hover:bg-red-600"
+                        title="Logoyu Sil"
+                      >
+                        ✕
+                      </button>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-2xl">🏢</span>
+                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Logo Ekle</span>
+                    </div>
+                  )}
+                </div>
+                <label className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-2xl">
+                  <span className="text-white text-[10px] font-bold uppercase tracking-wider">Logoyu Değiştir</span>
+                  <input type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} />
+                </label>
+              </div>
+
+              <div>
+                <nav className="flex items-center gap-2 text-xs text-gray-400 mb-2 uppercase tracking-widest font-bold">
+                  <span>Dashboard</span>
+                  <span>/</span>
+                  <span className="text-indigo-600">{role === "super-admin" ? "Sistem Genel" : "Admin"}</span>
+                </nav>
+                <h1 className="text-4xl font-black text-gray-900 tracking-tight">
+                  {role === "super-admin" ? "Sistem Genel Paneli" : "Sınav Dashboard"}
+                </h1>
+                <p className="text-gray-500 mt-1 max-w-md">
+                  {role === "super-admin"
+                    ? "Tüm şirketlerin ekosistemini ve sınavlarını buradan yönetebilirsiniz."
+                    : "Sınavlarınızı oluşturun, düzenleyin ve katılımcılar için yeni oturumlar başlatın."}
+                </p>
+              </div>
             </div>
             <Link
               href="/create"

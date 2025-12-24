@@ -59,7 +59,7 @@ export const getQuizzes = async (req, res) => {
     const filter = isSuperAdmin ? { isActive: true } : { isActive: true, company: req.company._id };
 
     const quizzes = await Quiz.find(filter)
-      .populate("company", "name")
+      .populate("company", "name logo")
       .sort({ createdAt: -1 });
 
     res.status(200).json(quizzes);
