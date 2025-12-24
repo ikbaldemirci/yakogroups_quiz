@@ -71,7 +71,7 @@ export default function EditQuiz() {
 
                 setQuizTitle(quiz.title);
                 setQuizDescription(quiz.description);
-                setBackgroundColor(quiz.backgroundColor || "");
+                setBackgroundColor(quiz.backgroundColor || "#2e1065");
                 if (quiz.coverImage) {
                     setCoverPreview(`http://localhost:5000${quiz.coverImage}`);
                 }
@@ -374,15 +374,15 @@ export default function EditQuiz() {
                                     <div className="space-y-4">
                                         <button
                                             type="button"
-                                            onClick={() => setBackgroundColor("")}
-                                            className={`px-4 py-2 rounded-lg border text-sm transition-all ${backgroundColor === "" ? "bg-orange-50 border-orange-600 text-orange-700 font-medium" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"}`}
+                                            onClick={() => setBackgroundColor("#2e1065")}
+                                            className={`px-4 py-2 rounded-lg border text-sm transition-all ${backgroundColor === "#2e1065" ? "bg-orange-50 border-orange-600 text-orange-700 font-medium" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"}`}
                                         >
-                                            Varsayılan (Renk Yok)
+                                            Varsayılan (Koyu Tema)
                                         </button>
                                         <div className="custom-color-picker">
                                             <QuizColorPicker
                                                 key={backgroundColor ? "has-color" : "no-color"}
-                                                initialColor={backgroundColor || "#ffffff"}
+                                                initialColor={backgroundColor || "#2e1065"}
                                                 onChange={setBackgroundColor}
                                             />
                                         </div>

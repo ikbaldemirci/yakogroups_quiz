@@ -40,11 +40,11 @@ export default function CreateQuiz() {
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
 
 
-  const [backgroundColor, setBackgroundColor] = useState("");
-  const [color, setColor] = useColor("#ffffff");
+  const [backgroundColor, setBackgroundColor] = useState("#2e1065");
+  const [color, setColor] = useColor("#2e1065");
 
   useEffect(() => {
-    if (color.hex !== "#ffffff") {
+    if (color.hex !== "#2e1065") {
       setBackgroundColor(color.hex);
     }
   }, [color]);
@@ -342,10 +342,13 @@ export default function CreateQuiz() {
                   <div className="space-y-3">
                     <button
                       type="button"
-                      onClick={() => setBackgroundColor("")}
-                      className={`px-4 py-2 rounded-lg border text-sm transition-all ${backgroundColor === "" ? "bg-indigo-50 border-indigo-600 text-indigo-700 font-medium" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"}`}
+                      onClick={() => {
+                        setBackgroundColor("#2e1065");
+                        setColor({ ...color, hex: "#2e1065" });
+                      }}
+                      className={`px-4 py-2 rounded-lg border text-sm transition-all ${backgroundColor === "#2e1065" ? "bg-indigo-50 border-indigo-600 text-indigo-700 font-medium" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"}`}
                     >
-                      Varsayılan (Renk Yok)
+                      Varsayılan (Koyu Tema)
                     </button>
                     <div className="custom-color-picker">
                       <ColorPicker color={color} onChange={setColor} height={120} />
