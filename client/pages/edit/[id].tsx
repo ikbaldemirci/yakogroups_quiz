@@ -10,8 +10,6 @@ import {
 import { ColorPicker, useColor } from "react-color-palette";
 import "react-color-palette/css";
 
-import "react-color-palette/css";
-
 const QuizColorPicker = ({ initialColor, onChange }: { initialColor: string, onChange: (hex: string) => void }) => {
     const [color, setColor] = useColor(initialColor);
 
