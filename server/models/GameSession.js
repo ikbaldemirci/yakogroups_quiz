@@ -90,6 +90,11 @@ const GameSessionSchema = new mongoose.Schema(
       default: null,
     },
 
+    adminSocketId: {
+      type: String,
+      default: null,
+    },
+
     players: [PlayerSchema],
 
     startedAt: Date,

@@ -11,6 +11,8 @@ const calculateScore = (basePoints, remainingTime, totalTime) => {
 };
 
 export const gameSocket = () => {
+  const disconnectTimeouts = new Map();
+
   io.on("connection", (socket) => {
     console.log("Client connected:", socket.id);
 
@@ -161,8 +163,35 @@ export const gameSocket = () => {
       }
 
       if (isAdmin) {
+        if (disconnectTimeouts.has(lobbyCode)) {
+          clearTimeout(disconnectTimeouts.get(lobbyCode));
+          disconnectTimeouts.delete(lobbyCode);
+          console.log(`Admin reconnected to lobby ${lobbyCode}, cancel disconnect timer.`);
+        }
+
+        session.adminSocketId = socket.id;
+        await session.save();
+
         io.to(socket.id).emit("players-updated", session.players);
         io.to(socket.id).emit("join-ok", { nickname: "admin" });
+
+        if (session.status === "active") {
+          let syncData = {
+            status: session.status,
+            currentPhase: session.currentPhase,
+            currentQuestionIndex: session.currentQuestionIndex,
+            currentPresenter: session.currentPresenter,
+            players: session.players,
+          };
+
+          if (session.currentPhase === "question") {
+            const question = await getCurrentQuestion(session);
+            if (question) {
+              syncData.question = question;
+            }
+          }
+          io.to(socket.id).emit("game-state-sync", syncData);
+        }
         return;
       }
 
@@ -415,10 +444,43 @@ export const gameSocket = () => {
       const clientId = socket.data?.clientId;
       const isAdmin = socket.data?.isAdmin;
 
-      if (!lobbyCode || !clientId || isAdmin) return;
+      if (!lobbyCode) return;
 
       const session = await GameSession.findOne({ lobbyCode });
       if (!session) return;
+
+      // === ADMIN DISCONNECT LOGIC ===
+      if (isAdmin) {
+        if (session.status === "active") {
+          console.log(`Admin disconnected from active lobby ${lobbyCode}. Starting grace period...`);
+
+          if (disconnectTimeouts.has(lobbyCode)) {
+            clearTimeout(disconnectTimeouts.get(lobbyCode));
+          }
+
+          const timeoutId = setTimeout(async () => {
+            console.log(`Admin grace period expired for ${lobbyCode}. Ending game.`);
+
+            const currentSession = await GameSession.findOne({ lobbyCode });
+            if (currentSession && currentSession.status === "active") {
+              currentSession.status = "finished";
+              currentSession.finishedAt = new Date();
+              await currentSession.save();
+
+              io.to(lobbyCode).emit("game-finished", {
+                reason: "ADMIN_DISCONNECTED",
+                leaderboard: [...currentSession.players].sort((a, b) => b.score - a.score),
+              });
+            }
+            disconnectTimeouts.delete(lobbyCode);
+          }, 15000); // 15 seconds grace period
+
+          disconnectTimeouts.set(lobbyCode, timeoutId);
+        }
+        return;
+      }
+      
+      if (!clientId) return; // 
 
       const player = session.players.find(
         (p) => (p.clientId || "").trim() === (clientId || "").trim()
