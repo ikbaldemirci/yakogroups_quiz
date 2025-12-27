@@ -41,12 +41,12 @@ export const signup = async (req, res) => {
         });
 
         res.status(201).json({
+            message: "Kayıt başarılı. Lütfen giriş yapın.",
             _id: company._id,
             name: company.name,
             email: company.email,
             role: company.role,
             logo: company.logo,
-            token: generateToken(company._id),
         });
     } catch (error) {
         res.status(500).json({ message: "Sunucu hatası.", error: error.message });

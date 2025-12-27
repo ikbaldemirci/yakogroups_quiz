@@ -48,6 +48,12 @@ export default function Login() {
                     Devam etmek için giriş yapın
                 </p>
 
+                {router.query.registered && (
+                    <div className="mb-6 p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 text-sm font-medium text-center">
+                        Hesabınız başarıyla oluşturuldu. Lütfen giriş yapın.
+                    </div>
+                )}
+
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
                         <label className="block text-sm font-medium mb-2">Email</label>
