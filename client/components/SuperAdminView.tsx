@@ -119,7 +119,7 @@ export default function SuperAdminView({ quizzes, currentCompanyName, onStartSes
                                                 quiz={quiz}
                                                 onStartSession={onStartSession}
                                                 onDelete={onDelete}
-                                                showCompanyBadge={false}
+                                                showCompanyBadge={true}
                                             />
                                         ))}
                                     </div>
