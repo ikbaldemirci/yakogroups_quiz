@@ -51,6 +51,13 @@ const CompanySchema = new mongoose.Schema(
       ref: "User",
       required: false,
     },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verificationToken: String,
+    resetPasswordToken: String,
+    resetPasswordExpire: Date,
   },
   {
     timestamps: true,

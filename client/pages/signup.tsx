@@ -30,7 +30,7 @@ export default function Signup() {
                 throw new Error(data.message || "Kayıt olunamadı.");
             }
 
-            router.push("/login?registered=true");
+            router.push("/login?verify=true");
         } catch (err: any) {
             setError(err.message);
         } finally {

@@ -49,8 +49,16 @@ export default function Login() {
                 </p>
 
                 {router.query.registered && (
-                    <div className="mb-6 p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 text-sm font-medium text-center">
+                    <div className="mb-6 p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 text-sm font-medium text-center text-balance">
                         Hesabınız başarıyla oluşturuldu. Lütfen giriş yapın.
+                    </div>
+                )}
+
+                {router.query.verify && (
+                    <div className="mb-6 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 text-sm font-medium text-center text-balance">
+                        <div className="text-xl mb-2">📧</div>
+                        <h3 className="font-bold mb-1">E-posta Doğrulaması Gerekli</h3>
+                        <p className="text-xs opacity-80">Hesabınız oluşturuldu. Lütfen giriş yapabilmek için e-posta adresinize gönderdiğimiz doğrulama linkine tıklayın.</p>
                     </div>
                 )}
 
@@ -68,7 +76,12 @@ export default function Login() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-2">Şifre</label>
+                        <div className="flex justify-between items-center mb-2">
+                            <label className="block text-sm font-medium">Şifre</label>
+                            <Link href="/forgot-password" className="text-xs text-blue-600 hover:underline">
+                                Şifremi Unuttum
+                            </Link>
+                        </div>
                         <input
                             type="password"
                             required
