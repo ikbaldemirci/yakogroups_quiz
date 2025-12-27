@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Link from "next/link";
 
 interface Quiz {
@@ -20,19 +21,22 @@ interface QuizCardProps {
 }
 
 export default function QuizCard({ quiz, onStartSession, onDelete, showCompanyBadge }: QuizCardProps) {
+    const [imageError, setImageError] = useState(false);
+
     return (
         <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all border border-gray-200">
-            {quiz.coverImage ? (
-                <div className="h-40 w-full relative">
+            {quiz.coverImage && !imageError ? (
+                <div className="h-40 w-full relative bg-gray-50 flex items-center justify-center p-4">
                     <img
                         src={`http://localhost:5000${quiz.coverImage}`}
                         alt={quiz.title}
-                        className="w-full h-full object-cover"
+                        className="max-w-full max-h-full object-contain"
+                        onError={() => setImageError(true)}
                     />
                 </div>
             ) : (
-                <div className="h-40 w-full bg-gray-200 flex items-center justify-center">
-                    <span className="text-gray-400">Görsel Yok</span>
+                <div className="h-40 w-full bg-gray-100 flex items-center justify-center">
+                    <span className="text-gray-400 text-sm">Görsel Yok</span>
                 </div>
             )}
 
