@@ -186,9 +186,18 @@ export default function PlayerGame() {
     });
 
     socket.on("game-finished", (data: any) => {
-      setGameState((prev) => ({ ...prev, status: "finished" }));
-      if (data && data.leaderboard) setLeaderboard(data.leaderboard);
-    });
+      setJoined(true);
+      setGameState((prev) => ({
+        ...prev,
+        status: "finished",
+        currentPhase: "leaderboard",
+    }));
+
+    if (data?.leaderboard) {
+      setLeaderboard(data.leaderboard);
+    }
+  });
+
 
     const savedNickname = sessionStorage.getItem(`quiz_nickname_${lobbyCode}`);
 

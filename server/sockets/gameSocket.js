@@ -36,10 +36,33 @@ export const gameSocket = () => {
       }
     });
 
-    socket.on("join-lobby", async ({ lobbyCode, nickname, isAdmin, clientId }) => {
-      const session = await GameSession.findOne({ lobbyCode });
-      if (!session) return;
+   socket.on("join-lobby", async ({ lobbyCode, nickname, isAdmin, clientId }) => {
+  const session = await GameSession.findOne({ lobbyCode });
+  if (!session) return;
 
+
+  if (session.status === "finished" && !isAdmin) {
+    const normalizedClientId = (clientId || "").trim();
+
+    const wasPlayer = session.players.some(
+      (p) => (p.clientId || "").trim() === normalizedClientId
+    );
+
+    if (wasPlayer) {
+      socket.join(lobbyCode);
+
+      socket.data.lobbyCode = lobbyCode;
+      socket.data.clientId = normalizedClientId;
+      socket.data.isAdmin = false;
+
+      io.to(socket.id).emit("game-finished", {
+        leaderboard: [...session.players].sort((a, b) => b.score - a.score),
+      });
+    } else {
+      io.to(socket.id).emit("join-error", "Bu oyun sona erdi.");
+    }
+    return;
+  }
 
       const normalizedNick = (nickname || "").trim();
       const normalizedNickKey = normalizedNick.toLowerCase();
@@ -449,7 +472,7 @@ export const gameSocket = () => {
       const session = await GameSession.findOne({ lobbyCode });
       if (!session) return;
 
-      // === ADMIN DISCONNECT LOGIC ===
+    
       if (isAdmin) {
         if (session.status === "active") {
           console.log(`Admin disconnected from active lobby ${lobbyCode}. Starting grace period...`);
@@ -473,14 +496,14 @@ export const gameSocket = () => {
               });
             }
             disconnectTimeouts.delete(lobbyCode);
-          }, 15000); // 15 seconds grace period
+          }, 15000); 
 
           disconnectTimeouts.set(lobbyCode, timeoutId);
         }
         return;
       }
       
-      if (!clientId) return; // 
+      if (!clientId) return; 
 
       const player = session.players.find(
         (p) => (p.clientId || "").trim() === (clientId || "").trim()
