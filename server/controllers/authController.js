@@ -177,14 +177,18 @@ export const forgotPassword = async (req, res) => {
         await company.save();
 
         const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`;
-        const message = `Şifrenizi sıfırlamak için şu linke tıklayın: ${resetUrl}`;
+        const message = `YakoGroups Quiz şifrenizi sıfırlamak için şu linke tıklayın: ${resetUrl}`;
         const html = `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h2>Şifre Sıfırlama Talebi</h2>
-                <p>Şifrenizi sıfırlamak için bir talep aldık. Eğer bu talebi siz yapmadıysanız bu maili görmezden gelebilirsiniz.</p>
-                <div style="margin: 30px 0;">
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                <h2 style="color: #4f46e5;">Şifre Sıfırlama Talebi</h2>
+                <p>Merhaba ${company.name},</p>
+                <p>Hesabınız için bir şifre sıfırlama talebi aldık. Şifrenizi yenilemek için lütfen aşağıdaki butona tıklayın:</p>
+                <div style="text-align: center; margin: 30px 0;">
                     <a href="${resetUrl}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">Şifremi Sıfırla</a>
                 </div>
+                <p style="color: #666; font-size: 12px;">Eğer bu talebi siz yapmadıysanız bu maili görmezden gelebilirsiniz. Bu link 1 saat boyunca geçerlidir.</p>
+                <p style="color: #666; font-size: 12px;">Eğer butona tıklayamıyorsanız şu linki tarayıcınıza yapıştırın:</p>
+                <p style="color: #666; font-size: 12px;">${resetUrl}</p>
             </div>
         `;
 
