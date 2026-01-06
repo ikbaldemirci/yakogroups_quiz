@@ -38,7 +38,9 @@ interface Question {
     image?: string | null;
     audioFile?: File | null;
     audio?: string | null;
-    audioDuration?: number; 
+    audioDuration?: number;
+    playAudioOnHost?: boolean;
+    playAudioOnClient?: boolean;
 }
 
 export default function EditQuiz() {
@@ -92,6 +94,8 @@ export default function EditQuiz() {
                         order: q.order,
                         image: q.image,
                         audio: q.audio,
+                        playAudioOnHost: q.playAudioOnHost !== undefined ? q.playAudioOnHost : true,
+                        playAudioOnClient: q.playAudioOnClient !== undefined ? q.playAudioOnClient : true,
                     }));
                     setQuestions(mappedQuestions);
                 } else {
@@ -193,6 +197,8 @@ export default function EditQuiz() {
                 correctOptionIndex: 0,
                 durationSeconds: 30,
                 isAiGenerated: false,
+                playAudioOnHost: true,
+                playAudioOnClient: true,
                 order: questions.length + 1,
             },
         ]);
@@ -551,7 +557,32 @@ export default function EditQuiz() {
                                                                     }}
                                                                     className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
                                                                 />
-                                                                {q.audioFile && <p className="text-xs text-green-600 mt-1">Yeni Seçilen Ses: {q.audioFile.name} {q.audioDuration && `(${Math.ceil(q.audioDuration)}s)`}</p>}
+                                                                {(q.audioFile || q.audio) && (
+                                                                    <>
+                                                                        {q.audioFile && <p className="text-xs text-green-600 mt-1">Yeni Seçilen Ses: {q.audioFile.name} {q.audioDuration && `(${Math.ceil(q.audioDuration)}s)`}</p>}
+
+                                                                        <div className="mt-2 flex gap-4">
+                                                                            <label className="flex items-center gap-2 text-xs text-gray-700">
+                                                                                <input
+                                                                                    type="checkbox"
+                                                                                    checked={q.playAudioOnHost}
+                                                                                    onChange={(e) => handleQuestionChange(qIndex, "playAudioOnHost", e.target.checked)}
+                                                                                    className="rounded text-orange-600 focus:ring-orange-500"
+                                                                                />
+                                                                                Adminde Çal
+                                                                            </label>
+                                                                            <label className="flex items-center gap-2 text-xs text-gray-700">
+                                                                                <input
+                                                                                    type="checkbox"
+                                                                                    checked={q.playAudioOnClient}
+                                                                                    onChange={(e) => handleQuestionChange(qIndex, "playAudioOnClient", e.target.checked)}
+                                                                                    className="rounded text-orange-600 focus:ring-orange-500"
+                                                                                />
+                                                                                Oyuncuda Çal
+                                                                            </label>
+                                                                        </div>
+                                                                    </>
+                                                                )}
                                                             </div>
 
                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">

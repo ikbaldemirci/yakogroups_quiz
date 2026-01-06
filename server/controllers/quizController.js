@@ -35,6 +35,8 @@ export const createQuiz = async (req, res) => {
           isAiGenerated: q.isAiGenerated || false,
           image: q.image || null,
           audio: q.audio || null,
+          playAudioOnHost: q.playAudioOnHost !== undefined ? q.playAudioOnHost : true,
+          playAudioOnClient: q.playAudioOnClient !== undefined ? q.playAudioOnClient : true,
         };
       });
 
@@ -118,6 +120,8 @@ export const updateQuiz = async (req, res) => {
           isAiGenerated: q.isAiGenerated || false,
           image: q.image || null,
           audio: q.audio || null,
+          playAudioOnHost: q.playAudioOnHost !== undefined ? q.playAudioOnHost : true,
+          playAudioOnClient: q.playAudioOnClient !== undefined ? q.playAudioOnClient : true,
         };
       });
 

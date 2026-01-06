@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 import dynamic from "next/dynamic";
 import { QRCodeSVG } from "qrcode.react";
@@ -20,6 +20,8 @@ interface GameState {
   currentQuestionText?: string;
   wheelWinner?: string;
   currentQuestionImage?: string;
+  currentQuestionAudio?: string;
+  currentQuestionPlayOnHost?: boolean;
 }
 
 let socket: Socket;
@@ -39,6 +41,7 @@ export default function AdminLobby() {
   const [currentQuestionText, setCurrentQuestionText] = useState("");
   const [wheelWinner, setWheelWinner] = useState("");
   const [wheelWinnerShown, setWheelWinnerShown] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (!lobbyCode) return;
@@ -68,6 +71,8 @@ export default function AdminLobby() {
         currentPhase: "question",
         currentQuestionIndex: typeof data === "number" ? data : data.index,
         currentQuestionImage: qImage,
+        currentQuestionAudio: data.question?.audio,
+        currentQuestionPlayOnHost: data.question?.playAudioOnHost,
       }));
       setWheelWinner("");
     });
@@ -96,6 +101,8 @@ export default function AdminLobby() {
         currentPhase: data.currentPhase,
         currentQuestionIndex: data.currentQuestionIndex,
         currentQuestionImage: data.question?.image,
+        currentQuestionAudio: data.question?.audio,
+        currentQuestionPlayOnHost: data.question?.playAudioOnHost,
         players: data.players,
       }));
 
@@ -108,6 +115,21 @@ export default function AdminLobby() {
       socket.disconnect();
     };
   }, [lobbyCode]);
+
+  useEffect(() => {
+    if (gameState.currentPhase === "question" && gameState.currentQuestionAudio && audioRef.current) {
+      const shouldPlay = gameState.currentQuestionPlayOnHost !== false;
+
+      if (shouldPlay) {
+        audioRef.current.play().catch(e => console.log("Admin audio play error:", e));
+      } else {
+        audioRef.current.pause();
+      }
+    } else if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+  }, [gameState.currentPhase, gameState.currentQuestionAudio, gameState.currentQuestionPlayOnHost]);
 
   const startGame = () => {
     socket.emit("start-game", { lobbyCode });
@@ -285,6 +307,9 @@ export default function AdminLobby() {
                     )}
                     <h2 className="text-3xl font-bold">{currentQuestionText}</h2>
                     <p className="text-slate-500 mt-4">Oyuncular cevaplıyor...</p>
+                    {gameState.currentQuestionAudio && (
+                      <audio ref={audioRef} src={`http://localhost:5000${gameState.currentQuestionAudio}`} controls className="mt-4 mx-auto" />
+                    )}
                   </div>
                 )}
 

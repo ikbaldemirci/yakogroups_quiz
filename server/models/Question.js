@@ -65,6 +65,16 @@ const QuestionSchema = new mongoose.Schema(
       default: null,
     },
 
+    playAudioOnHost: {
+      type: Boolean,
+      default: true,
+    },
+
+    playAudioOnClient: {
+      type: Boolean,
+      default: true,
+    },
+
     order: {
       type: Number,
       required: true,

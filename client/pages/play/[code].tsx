@@ -34,6 +34,8 @@ interface Question {
   image?: string;
   isAiGenerated?: boolean;
   audio?: string;
+  playAudioOnHost?: boolean;
+  playAudioOnClient?: boolean;
 }
 
 
@@ -191,12 +193,12 @@ export default function PlayerGame() {
         ...prev,
         status: "finished",
         currentPhase: "leaderboard",
-    }));
+      }));
 
-    if (data?.leaderboard) {
-      setLeaderboard(data.leaderboard);
-    }
-  });
+      if (data?.leaderboard) {
+        setLeaderboard(data.leaderboard);
+      }
+    });
 
 
     const savedNickname = sessionStorage.getItem(`quiz_nickname_${lobbyCode}`);
@@ -228,11 +230,17 @@ export default function PlayerGame() {
 
   useEffect(() => {
     if (gameState.currentPhase === "question" && currentQuestion?.audio && audioRef.current) {
-      const elapsed = currentQuestion.durationSeconds - timer;
-      if (elapsed > 0) {
-        audioRef.current.currentTime = elapsed;
+      const shouldPlay = currentQuestion.playAudioOnClient !== false;
+
+      if (shouldPlay) {
+        const elapsed = currentQuestion.durationSeconds - timer;
+        if (elapsed > 0) {
+          audioRef.current.currentTime = elapsed;
+        }
+        audioRef.current.play().catch(e => console.log("Audio play error:", e));
+      } else {
+        audioRef.current.pause();
       }
-      audioRef.current.play().catch(e => console.log("Audio play error:", e));
     }
   }, [gameState.currentPhase, currentQuestion]);
 
@@ -535,7 +543,7 @@ export default function PlayerGame() {
             </div>
           )}
 
-          {currentQuestion?.audio && (
+          {currentQuestion?.audio && (currentQuestion.playAudioOnClient !== false) && (
             <div className="mb-4">
               <audio ref={audioRef} src={`http://localhost:5000${currentQuestion.audio}`} controls className="mx-auto" />
             </div>
