@@ -22,6 +22,29 @@ export const gameSocket = () => {
         .lean();
       return questions[session.currentQuestionIndex];
     };
+
+    const goToLeaderboard = async (lobbyCode, session) => {
+      session.currentPhase = "leaderboard";
+      await session.save();
+
+      const leaderboard = [...session.players]
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
+
+      const questions = await Question.find({ quiz: session.quiz }).sort({ order: 1 }).lean();
+      const nextQuestion = questions[session.currentQuestionIndex + 1];
+      const nextQuestionHasAudio = !!nextQuestion?.audio;
+
+      io.to(lobbyCode).emit("show-leaderboard", {
+        leaderboard,
+        allPlayers: session.players.map((p) => ({
+          nickname: p.nickname,
+          score: p.score,
+        })),
+        nextQuestionHasAudio,
+      });
+    };
+
     socket.on("get-quiz-info", async ({ lobbyCode }) => {
       const session = await GameSession.findOne({ lobbyCode });
       if (!session) return;
@@ -36,33 +59,33 @@ export const gameSocket = () => {
       }
     });
 
-   socket.on("join-lobby", async ({ lobbyCode, nickname, isAdmin, clientId }) => {
-  const session = await GameSession.findOne({ lobbyCode });
-  if (!session) return;
+    socket.on("join-lobby", async ({ lobbyCode, nickname, isAdmin, clientId }) => {
+      const session = await GameSession.findOne({ lobbyCode });
+      if (!session) return;
 
 
-  if (session.status === "finished" && !isAdmin) {
-    const normalizedClientId = (clientId || "").trim();
+      if (session.status === "finished" && !isAdmin) {
+        const normalizedClientId = (clientId || "").trim();
 
-    const wasPlayer = session.players.some(
-      (p) => (p.clientId || "").trim() === normalizedClientId
-    );
+        const wasPlayer = session.players.some(
+          (p) => (p.clientId || "").trim() === normalizedClientId
+        );
 
-    if (wasPlayer) {
-      socket.join(lobbyCode);
+        if (wasPlayer) {
+          socket.join(lobbyCode);
 
-      socket.data.lobbyCode = lobbyCode;
-      socket.data.clientId = normalizedClientId;
-      socket.data.isAdmin = false;
+          socket.data.lobbyCode = lobbyCode;
+          socket.data.clientId = normalizedClientId;
+          socket.data.isAdmin = false;
 
-      io.to(socket.id).emit("game-finished", {
-        leaderboard: [...session.players].sort((a, b) => b.score - a.score),
-      });
-    } else {
-      io.to(socket.id).emit("join-error", "Bu oyun sona erdi.");
-    }
-    return;
-  }
+          io.to(socket.id).emit("game-finished", {
+            leaderboard: [...session.players].sort((a, b) => b.score - a.score),
+          });
+        } else {
+          io.to(socket.id).emit("join-error", "Bu oyun sona erdi.");
+        }
+        return;
+      }
 
       const normalizedNick = (nickname || "").trim();
       const normalizedNickKey = normalizedNick.toLowerCase();
@@ -390,6 +413,15 @@ export const gameSocket = () => {
           earnedScore,
           isCorrect,
         });
+
+        const connectedPlayers = session.players.filter(p => p.connected);
+        const answeredCount = session.players.filter(p =>
+          p.answers.some(a => a.questionId.toString() === questionId.toString())
+        ).length;
+
+        if (answeredCount >= connectedPlayers.length && connectedPlayers.length > 0) {
+          await goToLeaderboard(lobbyCode, session);
+        }
       }
     );
 
@@ -398,27 +430,7 @@ export const gameSocket = () => {
       if (!session || session.status !== "active") return;
 
       if (session.currentPhase === "question") {
-        session.currentPhase = "leaderboard";
-        await session.save();
-
-        const leaderboard = [...session.players]
-          .sort((a, b) => b.score - a.score)
-          .slice(0, 5);
-
-
-
-        const questions = await Question.find({ quiz: session.quiz }).sort({ order: 1 }).lean();
-        const nextQuestion = questions[session.currentQuestionIndex + 1];
-        const nextQuestionHasAudio = !!nextQuestion?.audio;
-
-        io.to(lobbyCode).emit("show-leaderboard", {
-          leaderboard,
-          allPlayers: session.players.map((p) => ({
-            nickname: p.nickname,
-            score: p.score,
-          })),
-          nextQuestionHasAudio,
-        });
+        await goToLeaderboard(lobbyCode, session);
         return;
       }
 
@@ -472,7 +484,7 @@ export const gameSocket = () => {
       const session = await GameSession.findOne({ lobbyCode });
       if (!session) return;
 
-    
+
       if (isAdmin) {
         if (session.status === "active") {
           console.log(`Admin disconnected from active lobby ${lobbyCode}. Starting grace period...`);
@@ -496,14 +508,14 @@ export const gameSocket = () => {
               });
             }
             disconnectTimeouts.delete(lobbyCode);
-          }, 15000); 
+          }, 15000);
 
           disconnectTimeouts.set(lobbyCode, timeoutId);
         }
         return;
       }
-      
-      if (!clientId) return; 
+
+      if (!clientId) return;
 
       const player = session.players.find(
         (p) => (p.clientId || "").trim() === (clientId || "").trim()
