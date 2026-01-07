@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 import dynamic from "next/dynamic";
+import AdPlayer from "../../components/AdPlayer";
 
 const WheelComponent = dynamic(() => import("../../components/WheelComponent"), { ssr: false });
 
@@ -41,7 +42,7 @@ interface Question {
 
 interface GameState {
   status: "waiting" | "active" | "finished";
-  currentPhase: "question" | "leaderboard" | "wheel";
+  currentPhase: "question" | "leaderboard" | "wheel" | "ad";
   score: number;
   nickname: string;
   players?: any[];
@@ -71,6 +72,7 @@ export default function PlayerGame() {
 
 
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
+  const [currentAdUrl, setCurrentAdUrl] = useState("");
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [timer, setTimer] = useState(0);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
@@ -161,6 +163,15 @@ export default function PlayerGame() {
       setGameState((prev) => ({ ...prev, currentPhase: "leaderboard" }));
       setLeaderboard(data.leaderboard);
       setNextQuestionHasAudio(data.nextQuestionHasAudio || false);
+    });
+
+    socket.on("show-ad", (data: any) => {
+      console.log("Ad received:", data.mediaUrl);
+      setCurrentAdUrl(data.mediaUrl);
+      setGameState((prev) => ({
+        ...prev,
+        currentPhase: "ad",
+      }));
     });
 
     socket.on("join-error", (msg: string) => {
@@ -583,6 +594,21 @@ export default function PlayerGame() {
         <span className="font-bold text-gray-700">{gameState.nickname}</span>
         <span className="font-bold text-indigo-600">Skor: {gameState.score}</span>
       </div>
+
+      {gameState.currentPhase === "ad" && (
+        <div className="fixed inset-0 z-[100] bg-slate-900 flex flex-col items-center justify-center p-6">
+          <div className="mb-6 flex flex-col items-center">
+            <span className="bg-amber-400 text-amber-900 px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest shadow-sm animate-pulse">
+              Reklam Arası
+            </span>
+            <h2 className="text-white text-xl font-bold mt-2">Sıradaki soru birazdan gelecek...</h2>
+          </div>
+          <div className="w-full max-w-4xl">
+            <AdPlayer url={currentAdUrl} />
+          </div>
+          <p className="text-slate-400 text-sm mt-4 italic">Reklam bitince oyun otomatik devam edecektir.</p>
+        </div>
+      )}
     </div>
   );
 }

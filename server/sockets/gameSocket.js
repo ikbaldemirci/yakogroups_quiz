@@ -429,7 +429,7 @@ export const gameSocket = () => {
       const session = await GameSession.findOne({ lobbyCode });
       if (!session || session.status !== "active") return;
 
-      if (session.currentPhase === "question") {
+      if (session.currentPhase === "question" || session.currentPhase === "ad") {
         await goToLeaderboard(lobbyCode, session);
         return;
       }
@@ -451,9 +451,19 @@ export const gameSocket = () => {
         }
 
         session.currentQuestionIndex += 1;
-        const nextQuestion = await getCurrentQuestion(session);
+        const nextItem = await getCurrentQuestion(session);
 
-        if (nextQuestion.isAiGenerated) {
+        if (nextItem.type === "ad") {
+          session.currentPhase = "ad";
+          await session.save();
+          io.to(lobbyCode).emit("show-ad", {
+            mediaUrl: nextItem.mediaUrl,
+            index: session.currentQuestionIndex,
+          });
+          return;
+        }
+
+        if (nextItem.isAiGenerated) {
           session.currentPhase = "wheel";
           session.currentPresenter = null;
           await session.save();
@@ -465,7 +475,7 @@ export const gameSocket = () => {
           await session.save();
           io.to(lobbyCode).emit("question-changed", {
             index: session.currentQuestionIndex,
-            question: nextQuestion,
+            question: nextItem,
             presenter: null,
           });
         }

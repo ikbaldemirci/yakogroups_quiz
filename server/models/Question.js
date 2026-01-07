@@ -21,19 +21,35 @@ const QuestionSchema = new mongoose.Schema(
 
     text: {
       type: String,
-      required: [true, "Soru metni gereklidir."],
+      required: function () { return this.type === 'question'; },
       trim: true,
       minlength: [3, "Soru metni en az 3 karakter olmalıdır."],
     },
 
+    type: {
+      type: String,
+      enum: ["question", "ad"],
+      default: "question",
+    },
+
+    mediaUrl: {
+      type: String,
+      default: null,
+    },
+
     options: {
       type: [OptionSchema],
-      validate: [(val) => val.length >= 2, "En az iki seçenek gereklidir."],
+      validate: {
+        validator: function (val) {
+          return this.type === 'ad' || (val && val.length >= 2);
+        },
+        message: "En az iki seçenek gereklidir."
+      }
     },
 
     correctOptionIndex: {
       type: Number,
-      required: true,
+      required: function () { return this.type === 'question'; },
       min: 0,
     },
 

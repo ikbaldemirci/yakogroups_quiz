@@ -19,7 +19,9 @@ interface Option {
 }
 
 interface Question {
+  type: "question" | "ad";
   text: string;
+  mediaUrl?: string;
   options: Option[];
   correctOptionIndex: number;
   durationSeconds: number;
@@ -56,6 +58,7 @@ export default function CreateQuiz() {
 
   const [questions, setQuestions] = useState<Question[]>([
     {
+      type: "question",
       text: "",
       options: [{ text: "" }, { text: "" }, { text: "" }, { text: "" }],
       correctOptionIndex: 0,
@@ -148,6 +151,7 @@ export default function CreateQuiz() {
     setQuestions([
       ...questions,
       {
+        type: "question",
         text: "",
         options: [{ text: "" }, { text: "" }, { text: "" }, { text: "" }],
         correctOptionIndex: 0,
@@ -155,6 +159,22 @@ export default function CreateQuiz() {
         isAiGenerated: false,
         playAudioOnHost: true,
         playAudioOnClient: true,
+        order: questions.length + 1,
+      },
+    ]);
+  };
+
+  const addAd = () => {
+    setQuestions([
+      ...questions,
+      {
+        type: "ad",
+        text: "Reklam",
+        mediaUrl: "",
+        options: [],
+        correctOptionIndex: 0,
+        durationSeconds: 15,
+        isAiGenerated: false,
         order: questions.length + 1,
       },
     ]);
@@ -178,22 +198,30 @@ export default function CreateQuiz() {
       }
 
       for (const [index, q] of questions.entries()) {
-        if (q.text.trim().length < 3) {
-          setError(
-            `Soru ${index + 1}: Soru metni en az 3 karakter olmalıdır.`
-          );
-          setLoading(false);
-          return;
-        }
-        if (q.durationSeconds < 5) {
-          setError(`Soru ${index + 1}: Süre en az 5 saniye olmalıdır.`);
-          setLoading(false);
-          return;
-        }
-        if (q.options.some((o) => !o.text.trim())) {
-          setError(`Soru ${index + 1}: Tüm şıklar doldurulmalıdır.`);
-          setLoading(false);
-          return;
+        if (q.type === "question") {
+          if (q.text.trim().length < 3) {
+            setError(
+              `Soru ${index + 1}: Soru metni en az 3 karakter olmalıdır.`
+            );
+            setLoading(false);
+            return;
+          }
+          if (q.durationSeconds < 5) {
+            setError(`Soru ${index + 1}: Süre en az 5 saniye olmalıdır.`);
+            setLoading(false);
+            return;
+          }
+          if (q.options.some((o) => !o.text.trim())) {
+            setError(`Soru ${index + 1}: Tüm şıklar doldurulmalıdır.`);
+            setLoading(false);
+            return;
+          }
+        } else {
+          if (!q.mediaUrl?.trim()) {
+            setError(`Sıra ${index + 1}: Reklam linki boş olamaz.`);
+            setLoading(false);
+            return;
+          }
         }
       }
 
@@ -267,7 +295,10 @@ export default function CreateQuiz() {
           questions: questionsWithImages,
         }),
       });
-      if (!quizRes.ok) throw new Error("Sınav oluşturulamadı.");
+      if (!quizRes.ok) {
+        const errorData = await quizRes.json();
+        throw new Error(errorData.error || errorData.message || "Sınav oluşturulamadı.");
+      }
 
       alert("Sınav başarıyla oluşturuldu!");
       router.push("/admin");
@@ -420,178 +451,193 @@ export default function CreateQuiz() {
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition cursor-move p-6 relative"
+                              className={`rounded-xl shadow-sm hover:shadow-md transition cursor-move p-6 relative border ${q.type === "ad" ? "bg-amber-50 border-amber-200" : "bg-white border-gray-200"}`}
                             >
                               <div className="flex justify-between items-center mb-4">
-                                <span className="text-xs font-medium bg-gray-100 px-3 py-1 rounded-full">
-                                  Soru {q.order}
+                                <span className={`text-xs font-medium px-3 py-1 rounded-full ${q.type === "ad" ? "bg-amber-200 text-amber-800" : "bg-gray-100"}`}>
+                                  {q.type === "ad" ? "Reklam" : `Soru ${questions.filter((item, idx) => item.type === "question" && idx <= qIndex).length}`}
                                 </span>
-                                {questions.length > 1 && (
-                                  <button
-                                    onClick={() => removeQuestion(qIndex)}
-                                    className="text-sm text-red-500 hover:text-red-700"
-                                  >
-                                    Sil
-                                  </button>
-                                )}
-                              </div>
-                              <div className="mb-4">
-                                <input
-                                  type="text"
-                                  value={q.text}
-                                  onChange={(e) =>
-                                    handleQuestionChange(qIndex, "text", e.target.value)
-                                  }
-                                  placeholder="Soruyu buraya yazın..."
-                                  className="w-full mb-5 rounded-lg border border-gray-300 px-4 py-3"
-                                />
+                                <button
+                                  onClick={() => removeQuestion(qIndex)}
+                                  className="text-sm text-red-500 hover:text-red-700 font-bold"
+                                >
+                                  Sil
+                                </button>
                               </div>
 
-                              <div className="mb-4">
-                                <div className="flex justify-between items-center mb-1">
-                                  <label className="block text-sm font-medium text-gray-700">
-                                    Soru Görseli (İsteğe Bağlı)
-                                  </label>
-                                  {q.imageFile && (
-                                    <button
-                                      type="button"
-                                      onClick={() => handleImageChange(qIndex, null)}
-                                      className="text-xs text-red-500 hover:text-red-700 font-medium"
-                                    >
-                                      Görseli Kaldır
-                                    </button>
-                                  )}
-                                </div>
-                                <input
-                                  key={q.imageFile ? q.imageFile.name : "no-image"}
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={(e) => handleImageChange(qIndex, e.target.files ? e.target.files[0] : null)}
-                                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-                                />
-                                {q.imageFile && <p className="text-xs text-green-600 mt-1">Seçilen: {q.imageFile.name}</p>}
-                              </div>
-
-                              <div className="mb-4">
-                                <div className="flex justify-between items-center mb-1">
-                                  <label className="block text-sm font-medium text-gray-700">
-                                    Soru Sesi (İsteğe Bağlı - Maks 5MB)
-                                  </label>
-                                  {q.audioFile && (
-                                    <button
-                                      type="button"
-                                      onClick={() => handleAudioChange(qIndex, null)}
-                                      className="text-xs text-red-500 hover:text-red-700 font-medium"
-                                    >
-                                      Sesi Kaldır
-                                    </button>
-                                  )}
-                                </div>
-                                <input
-                                  key={q.audioFile ? q.audioFile.name : "no-audio"}
-                                  type="file"
-                                  accept="audio/mpeg,audio/wav"
-                                  onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file && file.size > 5 * 1024 * 1024) {
-                                      alert("Ses dosyası 5MB'dan büyük olamaz!");
-                                      e.target.value = "";
-                                      return;
-                                    }
-                                    handleAudioChange(qIndex, file || null);
-                                  }}
-                                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-                                />
-                                {q.audioFile && (
-                                  <>
-                                    <p className="text-xs text-green-600 mt-1">Seçilen Ses: {q.audioFile.name} {q.audioDuration && `(${Math.ceil(q.audioDuration)}s)`}</p>
-
-                                    <div className="mt-2 flex gap-4">
-                                      <label className="flex items-center gap-2 text-xs text-gray-700">
-                                        <input
-                                          type="checkbox"
-                                          checked={q.playAudioOnHost}
-                                          onChange={(e) => handleQuestionChange(qIndex, "playAudioOnHost", e.target.checked)}
-                                          className="rounded text-indigo-600 focus:ring-indigo-500"
-                                        />
-                                        Adminde Çal
-                                      </label>
-                                      <label className="flex items-center gap-2 text-xs text-gray-700">
-                                        <input
-                                          type="checkbox"
-                                          checked={q.playAudioOnClient}
-                                          onChange={(e) => handleQuestionChange(qIndex, "playAudioOnClient", e.target.checked)}
-                                          className="rounded text-indigo-600 focus:ring-indigo-500"
-                                        />
-                                        Oyuncuda Çal
-                                      </label>
-                                    </div>
-                                  </>
-                                )}
-                              </div>
-
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-                                {q.options.map((opt, oIndex) => (
-                                  <label key={oIndex} className="flex items-center gap-3">
-                                    <input
-                                      type="radio"
-                                      name={`correct-${qIndex}`}
-                                      checked={q.correctOptionIndex === oIndex}
-                                      onChange={() =>
-                                        handleQuestionChange(
-                                          qIndex,
-                                          "correctOptionIndex",
-                                          oIndex
-                                        )
-                                      }
-                                    />
+                              {q.type === "ad" ? (
+                                <div className="space-y-4">
+                                  <div>
+                                    <label className="block text-sm font-bold text-amber-900 mb-2">Video Linki (YouTube)</label>
                                     <input
                                       type="text"
-                                      value={opt.text}
+                                      value={q.mediaUrl}
+                                      onChange={(e) => handleQuestionChange(qIndex, "mediaUrl", e.target.value)}
+                                      placeholder="https://www.youtube.com/watch?v=..."
+                                      className="w-full rounded-lg border border-amber-300 px-4 py-3 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                                    />
+                                    <p className="text-[10px] text-amber-700 mt-1 italic">Sadece YouTube linklerini buraya yapıştırın.</p>
+                                  </div>
+                                </div>
+                              ) : (
+                                <>
+                                  <div className="mb-4">
+                                    <input
+                                      type="text"
+                                      value={q.text}
                                       onChange={(e) =>
-                                        handleOptionChange(
+                                        handleQuestionChange(qIndex, "text", e.target.value)
+                                      }
+                                      placeholder="Soruyu buraya yazın..."
+                                      className="w-full mb-5 rounded-lg border border-gray-300 px-4 py-3"
+                                    />
+
+                                    <div className="flex justify-between items-center mb-1">
+                                      <label className="block text-sm font-medium text-gray-700">
+                                        Soru Görseli (İsteğe Bağlı)
+                                      </label>
+                                      {q.imageFile && (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleImageChange(qIndex, null)}
+                                          className="text-xs text-red-500 hover:text-red-700 font-medium"
+                                        >
+                                          Görseli Kaldır
+                                        </button>
+                                      )}
+                                    </div>
+                                    <input
+                                      key={q.imageFile ? q.imageFile.name : "no-image"}
+                                      type="file"
+                                      accept="image/*"
+                                      onChange={(e) => handleImageChange(qIndex, e.target.files ? e.target.files[0] : null)}
+                                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                                    />
+                                    {q.imageFile && <p className="text-xs text-green-600 mt-1">Seçilen: {q.imageFile.name}</p>}
+                                  </div>
+
+                                  <div className="mb-4">
+                                    <div className="flex justify-between items-center mb-1">
+                                      <label className="block text-sm font-medium text-gray-700">
+                                        Soru Sesi (İsteğe Bağlı - Maks 5MB)
+                                      </label>
+                                      {q.audioFile && (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleAudioChange(qIndex, null)}
+                                          className="text-xs text-red-500 hover:text-red-700 font-medium"
+                                        >
+                                          Sesi Kaldır
+                                        </button>
+                                      )}
+                                    </div>
+                                    <input
+                                      key={q.audioFile ? q.audioFile.name : "no-audio"}
+                                      type="file"
+                                      accept="audio/mpeg,audio/wav"
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file && file.size > 5 * 1024 * 1024) {
+                                          alert("Ses dosyası 5MB'dan büyük olamaz!");
+                                          e.target.value = "";
+                                          return;
+                                        }
+                                        handleAudioChange(qIndex, file || null);
+                                      }}
+                                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                                    />
+                                    {q.audioFile && (
+                                      <>
+                                        <p className="text-xs text-green-600 mt-1">Seçilen Ses: {q.audioFile.name} {q.audioDuration && `(${Math.ceil(q.audioDuration)}s)`}</p>
+
+                                        <div className="mt-2 flex gap-4">
+                                          <label className="flex items-center gap-2 text-xs text-gray-700">
+                                            <input
+                                              type="checkbox"
+                                              checked={q.playAudioOnHost}
+                                              onChange={(e) => handleQuestionChange(qIndex, "playAudioOnHost", e.target.checked)}
+                                              className="rounded text-indigo-600 focus:ring-indigo-500"
+                                            />
+                                            Adminde Çal
+                                          </label>
+                                          <label className="flex items-center gap-2 text-xs text-gray-700">
+                                            <input
+                                              type="checkbox"
+                                              checked={q.playAudioOnClient}
+                                              onChange={(e) => handleQuestionChange(qIndex, "playAudioOnClient", e.target.checked)}
+                                              className="rounded text-indigo-600 focus:ring-indigo-500"
+                                            />
+                                            Oyuncuda Çal
+                                          </label>
+                                        </div>
+                                      </>
+                                    )}
+                                  </div>
+
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                                    {q.options.map((opt, oIndex) => (
+                                      <label key={oIndex} className="flex items-center gap-3">
+                                        <input
+                                          type="radio"
+                                          name={`correct-${qIndex}`}
+                                          checked={q.correctOptionIndex === oIndex}
+                                          onChange={() =>
+                                            handleQuestionChange(
+                                              qIndex,
+                                              "correctOptionIndex",
+                                              oIndex
+                                            )
+                                          }
+                                        />
+                                        <input
+                                          type="text"
+                                          value={opt.text}
+                                          onChange={(e) =>
+                                            handleOptionChange(
+                                              qIndex,
+                                              oIndex,
+                                              e.target.value
+                                            )
+                                          }
+                                          placeholder={`Şık ${String.fromCharCode(65 + oIndex)}`}
+                                          className="flex-1 rounded-lg border border-gray-300 px-3 py-2"
+                                        />
+                                      </label>
+                                    ))}
+                                  </div>
+
+                                  <div className="flex items-center gap-6 border-t pt-4">
+                                    <input
+                                      type="number"
+                                      min={5}
+                                      value={q.durationSeconds}
+                                      onChange={(e) =>
+                                        handleQuestionChange(
                                           qIndex,
-                                          oIndex,
-                                          e.target.value
+                                          "durationSeconds",
+                                          Number(e.target.value)
                                         )
                                       }
-                                      placeholder={`Şık ${String.fromCharCode(65 + oIndex)}`}
-                                      className="flex-1 rounded-lg border border-gray-300 px-3 py-2"
+                                      className="w-28 rounded-lg border border-gray-300 px-3 py-2"
                                     />
-                                  </label>
-                                ))}
-                              </div>
 
-                              <div className="flex items-center gap-6 border-t pt-4">
-                                <input
-                                  type="number"
-                                  min={5}
-                                  value={q.durationSeconds}
-                                  onChange={(e) =>
-                                    handleQuestionChange(
-                                      qIndex,
-                                      "durationSeconds",
-                                      Number(e.target.value)
-                                    )
-                                  }
-                                  className="w-28 rounded-lg border border-gray-300 px-3 py-2"
-                                />
-
-                                <label className="flex items-center gap-2 text-sm">
-                                  <input
-                                    type="checkbox"
-                                    checked={q.isAiGenerated}
-                                    onChange={(e) =>
-                                      handleQuestionChange(
-                                        qIndex,
-                                        "isAiGenerated",
-                                        e.target.checked
-                                      )
-                                    }
-                                  />
-                                  AI tarafından oluşturuldu (Çarkıfelek Gelsin)
-                                </label>
-                              </div>
+                                    <label className="flex items-center gap-2 text-sm">
+                                      <input
+                                        type="checkbox"
+                                        checked={q.isAiGenerated}
+                                        onChange={(e) =>
+                                          handleQuestionChange(
+                                            qIndex,
+                                            "isAiGenerated",
+                                            e.target.checked
+                                          )
+                                        }
+                                      />
+                                      AI tarafından oluşturuldu (Çarkıfelek Gelsin)
+                                    </label>
+                                  </div>
+                                </>
+                              )}
                             </div>
                           )}
                         </Draggable>
@@ -605,12 +651,20 @@ export default function CreateQuiz() {
           </div>
 
           <div className="sticky bottom-0 bg-white/90 backdrop-blur border-t border-gray-200 px-10 py-6 flex justify-between items-center">
-            <button
-              onClick={addQuestion}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium transition"
-            >
-              + Yeni Soru Ekle
-            </button>
+            <div className="flex gap-4">
+              <button
+                onClick={addQuestion}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold border-b-4 border-indigo-800 transition shadow-lg active:scale-95"
+              >
+                + Yeni Soru Ekle
+              </button>
+              <button
+                onClick={addAd}
+                className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-xl font-bold border-b-4 border-amber-700 transition shadow-lg active:scale-95"
+              >
+                + Reklam Ekle
+              </button>
+            </div>
 
             <div className="flex gap-4">
               <button

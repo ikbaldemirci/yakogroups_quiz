@@ -4,6 +4,7 @@ import { io, Socket } from "socket.io-client";
 import dynamic from "next/dynamic";
 import { QRCodeSVG } from "qrcode.react";
 import ProtectedRoute from "../../../components/ProtectedRoute";
+import AdPlayer from "../../../components/AdPlayer";
 
 const WheelComponent = dynamic(() => import("../../../components/WheelComponent"), { ssr: false });
 
@@ -14,7 +15,7 @@ interface Player {
 
 interface GameState {
   status: "waiting" | "active" | "finished";
-  currentPhase: "question" | "leaderboard" | "wheel";
+  currentPhase: "question" | "leaderboard" | "wheel" | "ad";
   currentQuestionIndex: number;
   players: Player[];
   currentQuestionText?: string;
@@ -39,6 +40,7 @@ export default function AdminLobby() {
   });
 
   const [currentQuestionText, setCurrentQuestionText] = useState("");
+  const [currentAdUrl, setCurrentAdUrl] = useState("");
   const [wheelWinner, setWheelWinner] = useState("");
   const [wheelWinnerShown, setWheelWinnerShown] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -79,6 +81,15 @@ export default function AdminLobby() {
 
     socket.on("show-leaderboard", () => {
       setGameState((prev) => ({ ...prev, currentPhase: "leaderboard" }));
+    });
+
+    socket.on("show-ad", (data: any) => {
+      setCurrentAdUrl(data.mediaUrl);
+      setGameState((prev) => ({
+        ...prev,
+        currentPhase: "ad",
+        currentQuestionIndex: data.index,
+      }));
     });
 
     socket.on("show-wheel", () => {
@@ -248,12 +259,12 @@ export default function AdminLobby() {
                     </p>
                   </div>
 
-                  {gameState.currentPhase === "question" && (
+                  {(gameState.currentPhase === "question" || gameState.currentPhase === "ad") && (
                     <button
                       onClick={nextStep}
-                      className="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-lg font-bold text-lg transition-colors"
+                      className="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-lg font-bold text-lg transition-colors border-b-4 border-blue-800 active:scale-95"
                     >
-                      Sonraki Adım (Puan Tablosu)
+                      {gameState.currentPhase === "question" ? "Sonraki Adım (Puan Tablosu)" : "Reklamı Atla / Devam Et"}
                     </button>
                   )}
 
@@ -349,25 +360,42 @@ export default function AdminLobby() {
                     )}
                   </div>
                 )}
+
+                {gameState.currentPhase === "ad" && (
+                  <div className="w-full max-w-4xl">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-3">
+                        <span className="bg-amber-500 text-black px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest animate-pulse">
+                          Reklam Yayında
+                        </span>
+                        <h3 className="text-amber-500 font-bold">Reklam Arası</h3>
+                      </div>
+                      <p className="text-slate-400 text-sm italic">Oyuncular şu anda reklamı izliyor.</p>
+                    </div>
+                    <div className="aspect-video rounded-xl overflow-hidden border-2 border-amber-500/30 shadow-2xl shadow-amber-500/10">
+                      <AdPlayer url={currentAdUrl} />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
-          {gameState.status === "finished" && (
-            <div className="text-center py-20">
-              <h2 className="text-6xl font-bold text-yellow-400 mb-8">
-                OYUN BİTTİ!
-              </h2>
-              <button
-                onClick={() => router.push("/admin")}
-                className="bg-slate-700 hover:bg-slate-600 px-8 py-3 rounded-lg text-lg"
-              >
-                Admin Paneline Dön
-              </button>
-            </div>
-          )}
-        </div>
+        {gameState.status === "finished" && (
+          <div className="text-center py-20">
+            <h2 className="text-6xl font-bold text-yellow-400 mb-8">
+              OYUN BİTTİ!
+            </h2>
+            <button
+              onClick={() => router.push("/admin")}
+              className="bg-slate-700 hover:bg-slate-600 px-8 py-3 rounded-lg text-lg"
+            >
+              Admin Paneline Dön
+            </button>
+          </div>
+        )}
       </div>
+    </div>
     </ProtectedRoute>
   );
 }

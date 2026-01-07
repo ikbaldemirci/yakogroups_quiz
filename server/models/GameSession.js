@@ -77,7 +77,7 @@ const GameSessionSchema = new mongoose.Schema(
 
     currentPhase: {
       type: String,
-      enum: ["question", "leaderboard", "wheel"],
+      enum: ["question", "leaderboard", "wheel", "ad"],
       default: "question",
     },
 
