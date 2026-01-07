@@ -305,11 +305,11 @@ export default function PlayerGame() {
             )}
 
             {quizInfo.coverImage && (
-              <div className="bg-white p-4 rounded-2xl shadow-xl transform hover:scale-105 transition-transform duration-300">
+              <div className="bg-white p-4 rounded-2xl shadow-xl transform hover:scale-105 transition-transform duration-300 w-48 h-48 flex items-center justify-center">
                 <img
                   src={`http://localhost:5000${quizInfo.coverImage}`}
                   alt="Quiz Logo"
-                  className="h-32 md:h-40 object-contain"
+                  className="max-w-full max-h-full object-contain"
                 />
               </div>
             )}
