@@ -39,6 +39,12 @@ interface Question {
   playAudioOnClient?: boolean;
 }
 
+interface JokersState {
+  fifty: boolean; 
+  double: boolean;
+  xtwo: boolean;
+}
+
 
 interface GameState {
   status: "waiting" | "active" | "finished";
@@ -81,6 +87,14 @@ export default function PlayerGame() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const [wheelWinnerShown, setWheelWinnerShown] = useState(false);
+
+  
+  const [myJokers, setMyJokers] = useState<JokersState>({ fifty: false, double: false, xtwo: false });
+  const [activeJoker, setActiveJoker] = useState<string | null>(null); 
+  const [removedOptions, setRemovedOptions] = useState<number[]>([]);
+  const [doubleDipUsed, setDoubleDipUsed] = useState(false);
+  const [showJokerFeedback, setShowJokerFeedback] = useState(""); 
+
 
 
   const Header = quizInfo && (
@@ -138,8 +152,22 @@ export default function PlayerGame() {
       sessionStorage.setItem(`quiz_nickname_${lobbyCode}`, serverNick || nickname);
     });
 
-
-
+    socket.on("joker-result", (data: any) => {
+      if (data.jokerType === "fifty") {
+        setRemovedOptions(data.removedOptions);
+        setMyJokers(prev => ({ ...prev, fifty: true }));
+      } else if (data.jokerType === "xtwo") {
+        setActiveJoker("xtwo");
+        setShowJokerFeedback("x2 Puan Aktif! Doğru bilirsen iki kat puan!");
+        setMyJokers(prev => ({ ...prev, xtwo: true }));
+        setTimeout(() => setShowJokerFeedback(""), 3000);
+      } else if (data.jokerType === "double") {
+        setActiveJoker("double");
+        setShowJokerFeedback("Çift Cevap Aktif! İki şansın var.");
+        setMyJokers(prev => ({ ...prev, double: true }));
+        setTimeout(() => setShowJokerFeedback(""), 3000);
+      }
+    });
 
     socket.on("question-changed", (data: any) => {
       setGameState((prev) => ({ ...prev, currentPhase: "question" }));
@@ -148,6 +176,11 @@ export default function PlayerGame() {
       setSelectedOption(null);
       setWheelWinner("");
       setNextQuestionHasAudio(false);
+
+      setRemovedOptions([]);
+      setActiveJoker(null);
+      setDoubleDipUsed(false);
+      setShowJokerFeedback("");
     });
 
     socket.on("show-wheel", () => {
@@ -270,9 +303,29 @@ export default function PlayerGame() {
 
   };
 
+  const handleUseJoker = (type: "fifty" | "xtwo" | "double") => {
+    if (myJokers[type] || !currentQuestion || selectedOption !== null) return;
+
+    
+    socket.emit("use-joker", {
+      lobbyCode,
+      nickname: gameState.nickname,
+      jokerType: type,
+      questionId: currentQuestion._id,
+    });
+  };
+
 
   const submitAnswer = (index: number) => {
-    if (selectedOption !== null || !currentQuestion) return;
+    if ((selectedOption !== null && !activeJoker) || !currentQuestion) return;
+
+    if (activeJoker === "double") {
+      if (selectedOption !== null && doubleDipUsed) return;
+
+    } else {
+      if (selectedOption !== null) return;
+    }
+
     setSelectedOption(index);
 
     socket.emit("submit-answer", {
@@ -284,6 +337,27 @@ export default function PlayerGame() {
       totalTime: currentQuestion.durationSeconds,
     });
   };
+
+  useEffect(() => {
+    if (!socket) return;
+    const handler = (data: any) => {
+      if (data.nickname === gameState.nickname) {
+        if (activeJoker === "double" && !data.isCorrect && !doubleDipUsed) {
+          
+          setDoubleDipUsed(true);
+          setSelectedOption(null); 
+          setShowJokerFeedback("Yanlış! Bir hakkın daha var.");
+          setTimeout(() => setShowJokerFeedback(""), 2000);
+        } else {
+          
+        }
+      }
+    };
+    socket.on("score-updated", handler);
+    return () => {
+      socket.off("score-updated", handler);
+    };
+  }, [gameState.nickname, activeJoker, doubleDipUsed]);
 
   if (!lobbyCode)
     return (
@@ -567,18 +641,49 @@ export default function PlayerGame() {
             }`}>
             {currentQuestion?.text}
           </h2>
+
+          <div className="flex justify-center gap-4 mt-4">
+            <button
+              onClick={() => handleUseJoker("fifty")}
+              disabled={myJokers.fifty || selectedOption !== null || removedOptions.length > 0}
+              className={`flex flex-col items-center px-4 py-2 rounded-lg font-bold transition-all ${myJokers.fifty ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600 text-white shadow-lg active:scale-95"
+                }`}
+            >
+              <div className="bg-white/20 p-2 rounded-full mb-1">🌗</div>
+              <span>%50</span>
+            </button>
+            <button
+              onClick={() => handleUseJoker("xtwo")}
+              disabled={myJokers.xtwo || selectedOption !== null}
+              className={`flex flex-col items-center px-4 py-2 rounded-lg font-bold transition-all ${myJokers.xtwo ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-green-500 hover:bg-green-600 text-white shadow-lg active:scale-95"
+                }`}
+            >
+              <div className="bg-white/20 p-2 rounded-full mb-1">2️⃣</div>
+              <span>x2</span>
+            </button>
+            <button
+              onClick={() => handleUseJoker("double")}
+              disabled={myJokers.double || selectedOption !== null}
+              className={`flex flex-col items-center px-4 py-2 rounded-lg font-bold transition-all ${myJokers.double ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-purple-500 hover:bg-purple-600 text-white shadow-lg active:scale-95"
+                }`}
+            >
+              <div className="bg-white/20 p-2 rounded-full mb-1">✌️</div>
+              <span>Çift</span>
+            </button>
+          </div>
+          {showJokerFeedback && <div className="mt-2 text-indigo-600 font-bold animate-bounce">{showJokerFeedback}</div>}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
           {currentQuestion?.options.map((opt, i) => (
             <button
               key={i}
-              disabled={selectedOption !== null || timer === 0}
+              disabled={(selectedOption !== null) || timer === 0 || removedOptions.includes(i)}
               onClick={() => submitAnswer(i)}
               className={`p-6 rounded-xl text-lg font-bold text-left transition-all transform shadow-sm border-2 ${selectedOption === i
                 ? "bg-indigo-600 text-white border-indigo-600 scale-95"
                 : "bg-white text-slate-700 border-gray-200 hover:border-indigo-300 hover:shadow-md active:scale-95"
-                } ${selectedOption !== null && selectedOption !== i ? "opacity-50" : ""
+                } ${(selectedOption !== null && selectedOption !== i) || removedOptions.includes(i) ? "opacity-30" : ""
                 }`}
             >
               <span className="inline-block w-8">

@@ -362,67 +362,129 @@ export const gameSocket = () => {
       });
     });
 
-    socket.on(
-      "submit-answer",
-      async ({
-        lobbyCode,
-        nickname,
-        questionId,
-        selectedOptionIndex,
-        remainingTime,
-        totalTime,
-      }) => {
-        const session = await GameSession.findOne({ lobbyCode });
-        if (
-          !session ||
-          session.status !== "active" ||
-          session.currentPhase !== "question"
-        )
-          return;
+    socket.on("use-joker", async ({ lobbyCode, nickname, jokerType, questionId }) => {
+      const session = await GameSession.findOne({ lobbyCode });
+      if (!session || session.status !== "active") return;
 
+      const player = session.players.find((p) => p.nickname === nickname);
+      if (!player) return;
+
+      if (player.jokers && player.jokers[jokerType]) {
+        return; 
+      }
+
+      if (!player.jokers) player.jokers = {};
+
+      if (jokerType === "fifty") {
         const question = await Question.findById(questionId);
         if (!question) return;
 
-        const player = session.players.find((p) => p.nickname === nickname);
-        if (!player) return;
+        const correctIndex = question.correctOptionIndex;
+        
+        const wrongIndices = question.options
+          .map((_, i) => i)
+          .filter((i) => i !== correctIndex);
 
-        const alreadyAnswered = player.answers.some(
-          (a) => a.questionId.toString() === questionId
-        );
-        if (alreadyAnswered) return;
+        for (let i = wrongIndices.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [wrongIndices[i], wrongIndices[j]] = [wrongIndices[j], wrongIndices[i]];
+        }
+        const removedOptions = wrongIndices.slice(0, 2);
 
-        const isCorrect = question.correctOptionIndex === selectedOptionIndex;
-        const earnedScore = isCorrect
-          ? calculateScore(question.points, remainingTime, totalTime)
-          : 0;
-
-        player.score += earnedScore;
-        player.answers.push({
-          questionId,
-          selectedOptionIndex,
-          isCorrect,
-          earnedScore,
-          answeredAt: new Date(),
-        });
-
+        player.jokers.fifty = questionId;
         await session.save();
 
-        io.to(lobbyCode).emit("score-updated", {
-          nickname,
-          score: player.score,
-          earnedScore,
-          isCorrect,
+        io.to(socket.id).emit("joker-result", {
+          jokerType: "fifty",
+          removedOptions,
         });
+      } else if (jokerType === "xtwo") {
+        player.jokers.xtwo = questionId;
+        await session.save();
+        io.to(socket.id).emit("joker-result", { jokerType: "xtwo", success: true });
+      } else if (jokerType === "double") {
+        player.jokers.double = questionId;
+        await session.save();
+        io.to(socket.id).emit("joker-result", { jokerType: "double", success: true });
+      }
+    });
 
-        const connectedPlayers = session.players.filter(p => p.connected);
-        const answeredCount = session.players.filter(p =>
-          p.answers.some(a => a.questionId.toString() === questionId.toString())
-        ).length;
 
-        if (answeredCount >= connectedPlayers.length && connectedPlayers.length > 0) {
-          await goToLeaderboard(lobbyCode, session);
+
+    socket.on("submit-answer", async ({ lobbyCode, nickname, questionId, selectedOptionIndex, remainingTime, totalTime }) => {
+      const session = await GameSession.findOne({ lobbyCode });
+      if (!session || session.status !== "active" || session.currentPhase !== "question") return;
+
+      const question = await Question.findById(questionId);
+      if (!question) return;
+
+      const player = session.players.find((p) => p.nickname === nickname);
+      if (!player) return;
+
+      const usedDoubleDip = player.jokers?.double === questionId;
+      const usedX2 = player.jokers?.xtwo === questionId;
+
+      const previousAnswers = player.answers.filter((a) => a.questionId.toString() === questionId);
+      const previousAnswersCount = previousAnswers.length;
+
+      if (previousAnswersCount > 0) {
+        if (usedDoubleDip && previousAnswersCount < 2) {
+
+        } else {
+          return; 
         }
       }
+
+      const isCorrect = question.correctOptionIndex === selectedOptionIndex;
+      let earnedScore = isCorrect
+        ? calculateScore(question.points, remainingTime, totalTime)
+        : 0;
+
+      if (isCorrect && usedX2) {
+        earnedScore *= 2;
+      }
+
+      player.score += earnedScore;
+      player.answers.push({
+        questionId,
+        selectedOptionIndex,
+        isCorrect,
+        earnedScore,
+        answeredAt: new Date(),
+      });
+
+      await session.save();
+
+      io.to(lobbyCode).emit("score-updated", {
+        nickname,
+        score: player.score,
+        earnedScore,
+        isCorrect,
+      });
+
+      const connectedPlayers = session.players.filter(p => p.connected);
+      
+      const finishedPlayersCount = session.players.filter(p => {
+        const pAnswers = p.answers.filter(a => a.questionId.toString() === questionId.toString());
+        if (pAnswers.length === 0) return false;
+
+        const hasCorrect = pAnswers.some(a => a.isCorrect);
+        if (hasCorrect) return true;
+
+        const pUsedDouble = p.jokers?.double === questionId.toString(); 
+        if (pUsedDouble) {
+          
+          return pAnswers.length >= 2;
+        } else {
+          
+          return true;
+        }
+      }).length;
+
+      if (finishedPlayersCount >= connectedPlayers.length && connectedPlayers.length > 0) {
+        await goToLeaderboard(lobbyCode, session);
+      }
+    }
     );
 
     socket.on("next-step", async ({ lobbyCode }) => {

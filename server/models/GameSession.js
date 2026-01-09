@@ -26,6 +26,11 @@ const PlayerSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    jokers: {
+      fifty: { type: String, default: null }, 
+      double: { type: String, default: null }, 
+      xtwo: { type: String, default: null },
+    },
 
     answers: [
       {
