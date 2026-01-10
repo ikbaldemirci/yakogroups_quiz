@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { QRCodeSVG } from "qrcode.react";
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import AdPlayer from "../../../components/AdPlayer";
+import * as XLSX from 'xlsx';
 
 const WheelComponent = dynamic(() => import("../../../components/WheelComponent"), { ssr: false });
 
@@ -26,6 +27,8 @@ interface GameState {
   answerStats?: number[];
   currentQuestionOptions?: { text: string }[];
   correctOptionIndex?: number;
+  quizItems?: any[];
+  allPlayersData?: any[];
 }
 
 let socket: Socket;
@@ -110,8 +113,13 @@ export default function AdminLobby() {
       setWheelWinnerShown(false);
     });
 
-    socket.on("game-finished", () => {
-      setGameState((prev) => ({ ...prev, status: "finished" }));
+    socket.on("game-finished", (data: any) => {
+      setGameState((prev) => ({
+        ...prev,
+        status: "finished",
+        quizItems: data.quizItems,
+        allPlayersData: data.players
+      }));
     });
 
     socket.on("game-state-sync", (data: any) => {
@@ -165,6 +173,63 @@ export default function AdminLobby() {
 
   const startQuestionAfterWheel = () => {
     socket.emit("start-question-after-wheel", { lobbyCode });
+  };
+
+  const exportToExcel = () => {
+    if (!gameState.quizItems || !gameState.allPlayersData) {
+      alert("Rapor verileri henüz yüklenmedi!");
+      return;
+    }
+
+    const questions = gameState.quizItems.filter(item => item.type === "question");
+
+    const reportData = gameState.allPlayersData.map(player => {
+      const row: any = {
+        "Oyuncu Adı": player.nickname,
+        "Toplam Puan": player.score
+      };
+
+      questions.forEach((q, idx) => {
+        const answer = player.answers?.find((a: any) => a.questionId.toString() === q._id.toString());
+        const header = `${idx + 1}. ${q.text.substring(0, 30)}${q.text.length > 30 ? "..." : ""}`;
+
+        if (answer) {
+          const selectedText = q.options[answer.selectedOptionIndex]?.text || "Cevap Yok";
+          const isCorrect = answer.isCorrect ? "(Doğru)" : "(Yanlış)";
+
+          const correctIdx = q.correctOptionIndex;
+          const correctOptionText = q.options[correctIdx]?.text || "Bilinmiyor";
+
+          const isWrong = answer.isCorrect ? "" : ` (Doğru Cevap: ${correctOptionText})`;
+          row[header] = `${selectedText} ${isCorrect} ${isWrong}`;
+        } else {
+          row[header] =  "Cevaplamadı";
+        }
+      });
+
+      return row;
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(reportData);
+
+    const objectMaxLength: any[] = [];
+    const keys = Object.keys(reportData[0] || {});
+
+    keys.forEach((key) => {
+      let maxLen = key.length;
+      reportData.forEach((row: any) => {
+        const cellValue = String(row[key] || "");
+        if (cellValue.length > maxLen) maxLen = cellValue.length;
+      });
+      objectMaxLength.push({ wch: maxLen + 2 });
+    });
+
+    worksheet["!cols"] = objectMaxLength;
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sınav Sonuçları");
+
+    XLSX.writeFile(workbook, `YakoGroups_Sonuc_${lobbyCode}.xlsx`);
   };
 
   if (!lobbyCode) return <div className="p-10 text-center text-white">Yükleniyor...</div>;
@@ -418,13 +483,27 @@ export default function AdminLobby() {
           )}
 
           {gameState.status === "finished" && (
-            <div className="text-center py-20">
-              <h2 className="text-6xl font-bold text-yellow-400 mb-8">
+            <div className="text-center py-20 flex flex-col items-center gap-6">
+              <h2 className="text-6xl font-bold text-yellow-400 mb-4">
                 OYUN BİTTİ!
               </h2>
+
+              <div className="bg-slate-800 p-8 rounded-2xl border border-slate-700 shadow-2xl max-w-lg w-full mb-8">
+                <p className="text-slate-400 mb-6 text-lg">Tüm sorular tamamlandı. Aşağıdaki butondan detaylı Excel raporunu alabilirsiniz.</p>
+
+                <button
+                  onClick={exportToExcel}
+                  className="w-full bg-green-600 hover:bg-green-500 text-white px-8 py-5 rounded-xl text-xl font-black transition-all transform hover:scale-105 shadow-xl border-b-4 border-green-800 active:scale-95 flex items-center justify-center gap-3 mb-4"
+                >
+                  EXCEL RAPORU İNDİR
+                </button>
+
+                <p className="text-xs text-slate-500 italic">Rapor; oyuncuların takma adlarını, her soruya verdikleri cevapları ve toplam puanlarını içerir.</p>
+              </div>
+
               <button
                 onClick={() => router.push("/admin")}
-                className="bg-slate-700 hover:bg-slate-600 px-8 py-3 rounded-lg text-lg"
+                className="bg-slate-700 hover:bg-slate-600 px-12 py-4 rounded-xl text-lg font-bold transition-colors border-b-4 border-slate-800"
               >
                 Admin Paneline Dön
               </button>

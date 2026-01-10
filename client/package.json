@@ -16,7 +16,8 @@
     "react-color-palette": "^7.3.1",
     "react-custom-roulette": "^1.4.1",
     "react-dom": "19.2.1",
-    "socket.io-client": "^4.8.1"
+    "socket.io-client": "^4.8.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

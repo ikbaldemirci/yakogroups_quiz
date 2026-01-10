@@ -579,7 +579,7 @@ export default function PlayerGame() {
                 return (
                   <div key={i} className="space-y-1">
                     <div className="flex justify-between text-xs font-bold text-white/90">
-                      <span>{String.fromCharCode(65 + i)}. {opt.text} {isCorrect && "✅"}</span>
+                      <span>{String.fromCharCode(65 + i)}. {opt.text} {isCorrect && "Doğru"}</span>
                       <span>%{percentage}</span>
                     </div>
                     <div className="w-full bg-black/30 h-4 rounded-full overflow-hidden border border-white/5">

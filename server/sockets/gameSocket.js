@@ -523,8 +523,12 @@ export const gameSocket = () => {
           session.finishedAt = new Date();
           await session.save();
 
+          const allItems = await Question.find({ quiz: session.quiz }).sort({ order: 1 }).lean();
+
           io.to(lobbyCode).emit("game-finished", {
             leaderboard: [...session.players].sort((a, b) => b.score - a.score),
+            players: session.players,
+            quizItems: allItems,
           });
           return;
         }
