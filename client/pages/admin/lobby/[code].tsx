@@ -23,6 +23,9 @@ interface GameState {
   currentQuestionImage?: string;
   currentQuestionAudio?: string;
   currentQuestionPlayOnHost?: boolean;
+  answerStats?: number[];
+  currentQuestionOptions?: { text: string }[];
+  correctOptionIndex?: number;
 }
 
 let socket: Socket;
@@ -79,8 +82,14 @@ export default function AdminLobby() {
       setWheelWinner("");
     });
 
-    socket.on("show-leaderboard", () => {
-      setGameState((prev) => ({ ...prev, currentPhase: "leaderboard" }));
+    socket.on("show-leaderboard", (data: any) => {
+      setGameState((prev) => ({
+        ...prev,
+        currentPhase: "leaderboard",
+        answerStats: data.answerStats,
+        currentQuestionOptions: data.currentQuestionOptions,
+        correctOptionIndex: data.correctOptionIndex,
+      }));
     });
 
     socket.on("show-ad", (data: any) => {
@@ -325,11 +334,38 @@ export default function AdminLobby() {
                 )}
 
                 {gameState.currentPhase === "leaderboard" && (
-                  <div className="text-center">
-                    <h2 className="text-4xl font-bold text-yellow-400 mb-4">
-                      Puan Tablosu
-                    </h2>
-                    <p className="text-slate-400">Sonuçlar gösteriliyor...</p>
+                  <div className="w-full h-full flex flex-col items-center justify-center p-4">
+                    <div className="w-full max-w-2xl bg-slate-800/50 rounded-2xl p-8 border border-slate-700 shadow-xl">
+                      <h3 className="text-2xl font-bold text-slate-300 mb-8 flex items-center gap-3 justify-center">
+                        Cevap İstatistikleri
+                      </h3>
+                      <div className="space-y-6">
+                        {gameState.currentQuestionOptions?.map((opt, i) => {
+                          const count = gameState.answerStats?.[i] || 0;
+                          const total = gameState.answerStats?.reduce((a, b) => a + b, 0) || 1;
+                          const percentage = Math.round((count / total) * 100);
+                          const isCorrect = i === gameState.correctOptionIndex;
+
+                          return (
+                            <div key={i} className="space-y-2">
+                              <div className="flex justify-between text-lg font-bold">
+                                <span className={isCorrect ? "text-green-400" : "text-slate-300"}>
+                                  {String.fromCharCode(65 + i)}. {opt.text}
+                                  {isCorrect && " (Doğru)"}
+                                </span>
+                                <span className="text-slate-400">{count} Kişi (%{percentage})</span>
+                              </div>
+                              <div className="w-full bg-slate-900 h-8 rounded-xl overflow-hidden border border-slate-700">
+                                <div
+                                  className={`h-full transition-all duration-1000 ${isCorrect ? "bg-green-500 shadow-[0_0_20px_rgba(34,197,94,0.3)]" : "bg-blue-500"}`}
+                                  style={{ width: `${percentage}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -381,21 +417,21 @@ export default function AdminLobby() {
             </div>
           )}
 
-        {gameState.status === "finished" && (
-          <div className="text-center py-20">
-            <h2 className="text-6xl font-bold text-yellow-400 mb-8">
-              OYUN BİTTİ!
-            </h2>
-            <button
-              onClick={() => router.push("/admin")}
-              className="bg-slate-700 hover:bg-slate-600 px-8 py-3 rounded-lg text-lg"
-            >
-              Admin Paneline Dön
-            </button>
-          </div>
-        )}
+          {gameState.status === "finished" && (
+            <div className="text-center py-20">
+              <h2 className="text-6xl font-bold text-yellow-400 mb-8">
+                OYUN BİTTİ!
+              </h2>
+              <button
+                onClick={() => router.push("/admin")}
+                className="bg-slate-700 hover:bg-slate-600 px-8 py-3 rounded-lg text-lg"
+              >
+                Admin Paneline Dön
+              </button>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
     </ProtectedRoute>
   );
 }

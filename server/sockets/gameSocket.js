@@ -35,6 +35,20 @@ export const gameSocket = () => {
       const nextQuestion = questions[session.currentQuestionIndex + 1];
       const nextQuestionHasAudio = !!nextQuestion?.audio;
 
+      const currentQuestion = await getCurrentQuestion(session);
+      const answerStats = [0, 0, 0, 0];
+
+      if (currentQuestion) {
+        session.players.forEach((p) => {
+          const answer = p.answers.find(
+            (a) => a.questionId.toString() === currentQuestion._id.toString()
+          );
+          if (answer && answer.selectedOptionIndex !== undefined) {
+            answerStats[answer.selectedOptionIndex]++;
+          }
+        });
+      }
+
       io.to(lobbyCode).emit("show-leaderboard", {
         leaderboard,
         allPlayers: session.players.map((p) => ({
@@ -42,6 +56,9 @@ export const gameSocket = () => {
           score: p.score,
         })),
         nextQuestionHasAudio,
+        answerStats,
+        currentQuestionOptions: currentQuestion?.options || [],
+        correctOptionIndex: currentQuestion?.correctOptionIndex,
       });
     };
 
@@ -370,7 +387,7 @@ export const gameSocket = () => {
       if (!player) return;
 
       if (player.jokers && player.jokers[jokerType]) {
-        return; 
+        return;
       }
 
       if (!player.jokers) player.jokers = {};
@@ -380,7 +397,7 @@ export const gameSocket = () => {
         if (!question) return;
 
         const correctIndex = question.correctOptionIndex;
-        
+
         const wrongIndices = question.options
           .map((_, i) => i)
           .filter((i) => i !== correctIndex);
@@ -431,7 +448,7 @@ export const gameSocket = () => {
         if (usedDoubleDip && previousAnswersCount < 2) {
 
         } else {
-          return; 
+          return;
         }
       }
 
@@ -463,7 +480,7 @@ export const gameSocket = () => {
       });
 
       const connectedPlayers = session.players.filter(p => p.connected);
-      
+
       const finishedPlayersCount = session.players.filter(p => {
         const pAnswers = p.answers.filter(a => a.questionId.toString() === questionId.toString());
         if (pAnswers.length === 0) return false;
@@ -471,12 +488,12 @@ export const gameSocket = () => {
         const hasCorrect = pAnswers.some(a => a.isCorrect);
         if (hasCorrect) return true;
 
-        const pUsedDouble = p.jokers?.double === questionId.toString(); 
+        const pUsedDouble = p.jokers?.double === questionId.toString();
         if (pUsedDouble) {
-          
+
           return pAnswers.length >= 2;
         } else {
-          
+
           return true;
         }
       }).length;
@@ -491,12 +508,12 @@ export const gameSocket = () => {
       const session = await GameSession.findOne({ lobbyCode });
       if (!session || session.status !== "active") return;
 
-      if (session.currentPhase === "question" || session.currentPhase === "ad") {
+      if (session.currentPhase === "question") {
         await goToLeaderboard(lobbyCode, session);
         return;
       }
 
-      if (session.currentPhase === "leaderboard") {
+      if (session.currentPhase === "leaderboard" || session.currentPhase === "ad") {
         const totalQuestions = await Question.countDocuments({
           quiz: session.quiz,
         });

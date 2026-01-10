@@ -40,7 +40,7 @@ interface Question {
 }
 
 interface JokersState {
-  fifty: boolean; 
+  fifty: boolean;
   double: boolean;
   xtwo: boolean;
 }
@@ -88,12 +88,12 @@ export default function PlayerGame() {
 
   const [wheelWinnerShown, setWheelWinnerShown] = useState(false);
 
-  
+
   const [myJokers, setMyJokers] = useState<JokersState>({ fifty: false, double: false, xtwo: false });
-  const [activeJoker, setActiveJoker] = useState<string | null>(null); 
+  const [activeJoker, setActiveJoker] = useState<string | null>(null);
   const [removedOptions, setRemovedOptions] = useState<number[]>([]);
   const [doubleDipUsed, setDoubleDipUsed] = useState(false);
-  const [showJokerFeedback, setShowJokerFeedback] = useState(""); 
+  const [showJokerFeedback, setShowJokerFeedback] = useState("");
 
 
 
@@ -193,7 +193,13 @@ export default function PlayerGame() {
     });
 
     socket.on("show-leaderboard", (data: any) => {
-      setGameState((prev) => ({ ...prev, currentPhase: "leaderboard" }));
+      setGameState((prev) => ({
+        ...prev,
+        currentPhase: "leaderboard",
+        answerStats: data.answerStats,
+        currentQuestionOptions: data.currentQuestionOptions,
+        correctOptionIndex: data.correctOptionIndex,
+      }));
       setLeaderboard(data.leaderboard);
       setNextQuestionHasAudio(data.nextQuestionHasAudio || false);
     });
@@ -306,7 +312,7 @@ export default function PlayerGame() {
   const handleUseJoker = (type: "fifty" | "xtwo" | "double") => {
     if (myJokers[type] || !currentQuestion || selectedOption !== null) return;
 
-    
+
     socket.emit("use-joker", {
       lobbyCode,
       nickname: gameState.nickname,
@@ -343,13 +349,13 @@ export default function PlayerGame() {
     const handler = (data: any) => {
       if (data.nickname === gameState.nickname) {
         if (activeJoker === "double" && !data.isCorrect && !doubleDipUsed) {
-          
+
           setDoubleDipUsed(true);
-          setSelectedOption(null); 
+          setSelectedOption(null);
           setShowJokerFeedback("Yanlış! Bir hakkın daha var.");
           setTimeout(() => setShowJokerFeedback(""), 2000);
         } else {
-          
+
         }
       }
     };
@@ -558,21 +564,53 @@ export default function PlayerGame() {
           Puan Durumu
         </h2>
 
-        <div className="w-full max-w-md space-y-4">
-          {leaderboard.map((p, i) => (
-            <div
-              key={i}
-              className={`flex items-center justify-between p-4 rounded-xl shadow-md transform transition-all ${p.nickname === gameState.nickname
-                ? "bg-gradient-to-r from-yellow-500 to-orange-500 scale-105 border-2 border-white text-white"
-                : "bg-white/10 text-white"
-                }`}
-            >
-              <div className="flex items-center gap-4">
-                <span className="font-bold text-lg">{p.nickname}</span>
-              </div>
-              <span className="font-mono font-bold text-xl">{p.score}</span>
+        <div className="w-full max-w-5xl flex flex-col lg:flex-row gap-8 items-start justify-center px-4">
+          <div className="flex-1 w-full bg-white/10 rounded-2xl p-6 border border-white/10 shadow-xl">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              Soru İstatistikleri
+            </h3>
+            <div className="space-y-4">
+              {(gameState as any).currentQuestionOptions?.map((opt: any, i: number) => {
+                const count = (gameState as any).answerStats?.[i] || 0;
+                const total = (gameState as any).answerStats?.reduce((a: number, b: number) => a + b, 0) || 1;
+                const percentage = Math.round((count / total) * 100);
+                const isCorrect = i === (gameState as any).correctOptionIndex;
+
+                return (
+                  <div key={i} className="space-y-1">
+                    <div className="flex justify-between text-xs font-bold text-white/90">
+                      <span>{String.fromCharCode(65 + i)}. {opt.text} {isCorrect && "✅"}</span>
+                      <span>%{percentage}</span>
+                    </div>
+                    <div className="w-full bg-black/30 h-4 rounded-full overflow-hidden border border-white/5">
+                      <div
+                        className={`h-full transition-all duration-1000 ${isCorrect ? "bg-green-500" : "bg-blue-500"}`}
+                        style={{ width: `${percentage}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          ))}
+          </div>
+
+          <div className="flex-1 w-full max-w-md space-y-3">
+            <h3 className="text-center text-sm font-bold text-white/50 uppercase tracking-widest mb-2">Sıralama</h3>
+            {leaderboard.map((p, i) => (
+              <div
+                key={i}
+                className={`flex items-center justify-between p-4 rounded-xl shadow-md transform transition-all ${p.nickname === gameState.nickname
+                  ? "bg-gradient-to-r from-yellow-500 to-orange-500 scale-105 border-2 border-white text-white"
+                  : "bg-white/10 text-white"
+                  }`}
+              >
+                <div className="flex items-center gap-4">
+                  <span className="font-bold text-lg">{p.nickname}</span>
+                </div>
+                <span className="font-mono font-bold text-xl">{p.score}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className={`mt-auto pt-8 text-sm ${quizInfo?.backgroundColor ? "text-white/80" : "text-blue-300"}`}>
