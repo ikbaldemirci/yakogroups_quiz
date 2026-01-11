@@ -297,6 +297,10 @@ export default function PlayerGame() {
   const handleJoin = () => {
     const nick = nickname.trim();
     if (!nick) return;
+    if (nick.length > 30) {
+      setError("Takma adınız 30 karakterden uzun olamaz.");
+      return;
+    }
 
     setError("");
 
@@ -407,15 +411,22 @@ export default function PlayerGame() {
             className="w-full bg-gray-50 border-2 border-gray-200 focus:border-indigo-500 rounded-xl px-4 py-3 text-lg font-bold text-gray-800 mb-4 focus:outline-none transition-colors"
             placeholder="Takma Adın (Nickname)"
             value={nickname}
+            maxLength={50}
             onChange={(e) => setNickname(e.target.value)}
           />
+          {nickname.length > 30 && (
+            <p className="text-red-500 text-xs mt-1 mb-2 font-medium italic animate-bounce">Nickname'iniz 30 karakterden fazla olamaz!</p>
+          )}
+          {nickname.length > 0 && nickname.length <= 30 && (
+            <p className="text-gray-400 text-[10px] mt-1 mb-2 text-right">{nickname.length}/30</p>
+          )}
 
           {error && <div className="bg-red-100 text-red-600 p-3 rounded-lg text-sm mb-4 font-bold animate-pulse">{error}</div>}
 
           <button
             onClick={handleJoin}
-            disabled={!nickname}
-            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95 disabled:opacity-50 disabled:scale-100"
+            disabled={!nickname || nickname.length > 30}
+            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95 disabled:opacity-50 disabled:grayscale disabled:scale-100"
           >
             GİRİŞ YAP
           </button>

@@ -6,7 +6,7 @@ const PlayerSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      maxlength: 20,
+      maxlength: 30,
     },
 
     clientId: {
@@ -27,8 +27,8 @@ const PlayerSchema = new mongoose.Schema(
       default: 0,
     },
     jokers: {
-      fifty: { type: String, default: null }, 
-      double: { type: String, default: null }, 
+      fifty: { type: String, default: null },
+      double: { type: String, default: null },
       xtwo: { type: String, default: null },
     },
 
