@@ -258,7 +258,6 @@ export const gameSocket = () => {
         return;
       }
 
-      // Waiting ise ekle
       if (session.status === "waiting") {
         session.players.push({
           nickname: normalizedNick,
