@@ -98,27 +98,31 @@ export default function PlayerGame() {
 
 
   const Header = quizInfo && (
-    <>
-      {quizInfo.coverImage && (
-        <div className="absolute top-5 left-5 z-50">
+    <div className="w-full flex flex-col md:flex-row items-center justify-between p-4 relative z-50 shrink-0 transition-all duration-300 ease-in-out">
+      <div className="w-full md:flex-1 flex justify-center md:justify-start order-1 md:order-1 mb-4 md:mb-0">
+        {quizInfo.coverImage ? (
           <img
             src={`http://localhost:5000${quizInfo.coverImage}`}
             alt="Şirket Logosu"
-            className="h-20 max-w-[200px] object-contain bg-white px-4 py-2 rounded-lg shadow-md"
+            className="h-16 md:h-20 max-w-[150px] md:max-w-[200px] object-contain bg-white px-4 py-2 rounded-lg shadow-md"
           />
-        </div>
-      )}
+        ) : <div className="hidden md:block" />}
+      </div>
+
       {quizInfo.title && (
-        <div className="absolute top-5 left-1/2 transform -translate-x-1/2 z-50 text-center">
+        <div className="w-full md:w-auto text-center order-2 md:order-2 px-2 flex justify-center">
           <span
-            className={`font-bold text-3xl tracking-tight ${quizInfo.backgroundColor ? "text-white drop-shadow-md" : "text-slate-900"
+            className={`font-bold text-2xl md:text-3xl tracking-tight leading-tight break-words ${quizInfo.backgroundColor ? "text-white drop-shadow-md" : "text-slate-900"
               }`}
           >
             {quizInfo.title}
           </span>
         </div>
       )}
-    </>
+
+      <div className="hidden md:flex flex-1 justify-end order-3 md:order-3 pointer-events-none">
+      </div>
+    </div>
   );
 
 
@@ -438,7 +442,7 @@ export default function PlayerGame() {
   if (gameState.status === "waiting") {
     return (
       <div
-        className="min-h-screen flex flex-col items-center justify-center p-4 text-center relative"
+        className="min-h-screen flex flex-col p-4 relative"
         style={{
           backgroundColor: quizInfo?.backgroundColor || undefined,
           color: quizInfo?.backgroundColor ? "white" : undefined // Ensure text is visible
@@ -450,13 +454,15 @@ export default function PlayerGame() {
 
         {Header}
 
-        <div className="animate-pulse mb-8 text-6xl">⏳</div>
-        <h2 className={`text-3xl font-bold mb-2 ${quizInfo?.backgroundColor ? "text-white" : "text-white"}`}>
-          Hazırsın, {gameState.nickname}!
-        </h2>
-        <p className={`${quizInfo?.backgroundColor ? "text-white/80" : "text-indigo-200"}`}>
-          Sunucunun oyunu başlatması bekleniyor...
-        </p>
+        <div className="flex-1 flex flex-col items-center justify-center text-center w-full">
+          <div className="animate-pulse mb-8 text-6xl">⏳</div>
+          <h2 className={`text-3xl font-bold mb-2 ${quizInfo?.backgroundColor ? "text-white" : "text-white"}`}>
+            Hazırsın, {gameState.nickname}!
+          </h2>
+          <p className={`${quizInfo?.backgroundColor ? "text-white/80" : "text-indigo-200"}`}>
+            Sunucunun oyunu başlatması bekleniyor...
+          </p>
+        </div>
       </div>
     );
   }
@@ -468,7 +474,7 @@ export default function PlayerGame() {
 
     return (
       <div
-        className="min-h-screen flex flex-col items-center justify-center p-4 text-center relative"
+        className="min-h-screen flex flex-col p-4 relative"
         style={{
           backgroundColor: quizInfo?.backgroundColor || undefined,
           color: quizInfo?.backgroundColor ? "white" : undefined
@@ -480,36 +486,39 @@ export default function PlayerGame() {
 
         {Header}
 
-        <h1 className="text-4xl font-bold text-yellow-400 mb-4">
-          Oyun Bitti!
-        </h1>
+        <div className="flex-1 flex flex-col items-center justify-center text-center w-full">
 
-        <p className={`text-2xl mb-8 ${quizInfo?.backgroundColor ? "text-white" : "text-white"}`}>
-          Sıralaman:{" "}
-          <span className="font-bold text-white bg-indigo-600 px-3 py-1 rounded-lg">
-            #{myRank > 0 ? myRank : "-"}
-          </span>
-        </p>
+          <h1 className="text-4xl font-bold text-yellow-400 mb-4">
+            Oyun Bitti!
+          </h1>
 
-        <div className="bg-slate-800 rounded-xl p-6 w-full max-w-md">
-          <h3 className="text-xl font-bold mb-4 border-b border-slate-700 pb-2 text-white">
-            Lider Tablosu
-          </h3>
+          <p className={`text-2xl mb-8 ${quizInfo?.backgroundColor ? "text-white" : "text-white"}`}>
+            Sıralaman:{" "}
+            <span className="font-bold text-white bg-indigo-600 px-3 py-1 rounded-lg">
+              #{myRank > 0 ? myRank : "-"}
+            </span>
+          </p>
 
-          {leaderboard.slice(0, 10).map((p, i) => (
-            <div
-              key={i}
-              className={`flex justify-between py-2 ${p.nickname === gameState.nickname
-                ? "text-yellow-400 font-bold"
-                : "text-gray-300"
-                }`}
-            >
-              <span>
-                #{i + 1} {p.nickname}
-              </span>
-              <span>{p.score} P</span>
-            </div>
-          ))}
+          <div className="bg-slate-800 rounded-xl p-6 w-full max-w-md">
+            <h3 className="text-xl font-bold mb-4 border-b border-slate-700 pb-2 text-white">
+              Lider Tablosu
+            </h3>
+
+            {leaderboard.slice(0, 10).map((p, i) => (
+              <div
+                key={i}
+                className={`flex justify-between py-2 ${p.nickname === gameState.nickname
+                  ? "text-yellow-400 font-bold"
+                  : "text-gray-300"
+                  }`}
+              >
+                <span>
+                  #{i + 1} {p.nickname}
+                </span>
+                <span>{p.score} P</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -517,40 +526,42 @@ export default function PlayerGame() {
 
   if (gameState.currentPhase === "wheel") {
     return (
-      <div className="min-h-screen bg-purple-900 flex flex-col items-center justify-center text-white overflow-hidden relative">
+      <div className="min-h-screen bg-purple-900 flex flex-col text-white overflow-hidden relative">
 
         {Header}
 
-        <div className="absolute inset-0 bg-[url('/wheel-bg-pattern.png')] opacity-10"></div>
+        <div className="absolute inset-0 bg-[url('/wheel-bg-pattern.png')] opacity-10 pointer-events-none"></div>
 
-        <h2 className="text-3xl font-bold mb-8 z-10 text-center">
-          Sıradaki Soru
-          <br />
-          AI Tarafından Oluşturuldu!
-        </h2>
+        <div className="flex-1 flex flex-col items-center justify-center w-full relative z-10">
+          <h2 className="text-3xl font-bold mb-8 text-center">
+            Sıradaki Soru
+            <br />
+            AI Tarafından Oluşturuldu!
+          </h2>
 
-        <div className="relative">
-          <WheelComponent
-            players={gameState.players || []}
-            winner={wheelWinner || null}
-            spinning={!!wheelWinner && !wheelWinnerShown}
-            onStopSpinning={() => setWheelWinnerShown(true)}
-          />
-        </div>
+          <div className="relative">
+            <WheelComponent
+              players={gameState.players || []}
+              winner={wheelWinner || null}
+              spinning={!!wheelWinner && !wheelWinnerShown}
+              onStopSpinning={() => setWheelWinnerShown(true)}
+            />
+          </div>
 
-        <div className="mt-12 text-center h-20 z-10">
-          {wheelWinner && wheelWinnerShown ? (
-            <div className="animate-bounce">
-              <p className="text-purple-200">Seçilen Kişi:</p>
-              <h1 className="text-5xl font-extrabold text-white mt-2 drop-shadow-lg">
-                {wheelWinner}
-              </h1>
-            </div>
-          ) : (
-            <p className="text-xl text-purple-300 animate-pulse">
-              {!wheelWinner ? "Kader çarkı dönüyor..." : "Çark dönüyor..."}
-            </p>
-          )}
+          <div className="mt-12 text-center h-20">
+            {wheelWinner && wheelWinnerShown ? (
+              <div className="animate-bounce">
+                <p className="text-purple-200">Seçilen Kişi:</p>
+                <h1 className="text-5xl font-extrabold text-white mt-2 drop-shadow-lg">
+                  {wheelWinner}
+                </h1>
+              </div>
+            ) : (
+              <p className="text-xl text-purple-300 animate-pulse">
+                {!wheelWinner ? "Kader çarkı dönüyor..." : "Çark dönüyor..."}
+              </p>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -559,7 +570,7 @@ export default function PlayerGame() {
   if (gameState.currentPhase === "leaderboard") {
     return (
       <div
-        className="min-h-screen p-6 pt-24 flex flex-col items-center relative"
+        className="min-h-screen flex flex-col items-center relative"
         style={{
           backgroundColor: quizInfo?.backgroundColor || undefined,
           color: quizInfo?.backgroundColor ? "white" : undefined
@@ -571,70 +582,72 @@ export default function PlayerGame() {
 
         {Header}
 
-        <h2 className={`text-3xl font-bold mb-8 px-6 py-2 rounded-full shadow-lg ${quizInfo?.backgroundColor ? "bg-white/20 text-white" : "bg-blue-800 text-white"}`}>
-          Puan Durumu
-        </h2>
+        <div className="flex-1 w-full p-6 flex flex-col items-center">
+          <h2 className={`text-3xl font-bold mb-8 px-6 py-2 rounded-full shadow-lg ${quizInfo?.backgroundColor ? "bg-white/20 text-white" : "bg-blue-800 text-white"}`}>
+            Puan Durumu
+          </h2>
 
-        <div className="w-full max-w-5xl flex flex-col lg:flex-row gap-8 items-start justify-center px-4">
-          <div className="flex-1 w-full bg-white/10 rounded-2xl p-6 border border-white/10 shadow-xl">
-            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              Soru İstatistikleri
-            </h3>
-            <div className="space-y-4">
-              {(gameState as any).currentQuestionOptions?.map((opt: any, i: number) => {
-                const count = (gameState as any).answerStats?.[i] || 0;
-                const total = (gameState as any).answerStats?.reduce((a: number, b: number) => a + b, 0) || 1;
-                const percentage = Math.round((count / total) * 100);
-                const isCorrect = i === (gameState as any).correctOptionIndex;
+          <div className="w-full max-w-5xl flex flex-col lg:flex-row gap-8 items-start justify-center px-4">
+            <div className="flex-1 w-full bg-white/10 rounded-2xl p-6 border border-white/10 shadow-xl">
+              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                Soru İstatistikleri
+              </h3>
+              <div className="space-y-4">
+                {(gameState as any).currentQuestionOptions?.map((opt: any, i: number) => {
+                  const count = (gameState as any).answerStats?.[i] || 0;
+                  const total = (gameState as any).answerStats?.reduce((a: number, b: number) => a + b, 0) || 1;
+                  const percentage = Math.round((count / total) * 100);
+                  const isCorrect = i === (gameState as any).correctOptionIndex;
 
-                return (
-                  <div key={i} className="space-y-1">
-                    <div className="flex justify-between text-xs font-bold text-white/90">
-                      <span>{String.fromCharCode(65 + i)}. {opt.text} {isCorrect && "Doğru"}</span>
-                      <span>%{percentage}</span>
+                  return (
+                    <div key={i} className="space-y-1">
+                      <div className="flex justify-between text-xs font-bold text-white/90">
+                        <span>{String.fromCharCode(65 + i)}. {opt.text} {isCorrect && "Doğru"}</span>
+                        <span>%{percentage}</span>
+                      </div>
+                      <div className="w-full bg-black/30 h-4 rounded-full overflow-hidden border border-white/5">
+                        <div
+                          className={`h-full transition-all duration-1000 ${isCorrect ? "bg-green-500" : "bg-blue-500"}`}
+                          style={{ width: `${percentage}%` }}
+                        ></div>
+                      </div>
                     </div>
-                    <div className="w-full bg-black/30 h-4 rounded-full overflow-hidden border border-white/5">
-                      <div
-                        className={`h-full transition-all duration-1000 ${isCorrect ? "bg-green-500" : "bg-blue-500"}`}
-                        style={{ width: `${percentage}%` }}
-                      ></div>
-                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex-1 w-full max-w-md space-y-3">
+              <h3 className="text-center text-sm font-bold text-white/50 uppercase tracking-widest mb-2">Sıralama</h3>
+              {leaderboard.map((p, i) => (
+                <div
+                  key={i}
+                  className={`flex items-center justify-between p-4 rounded-xl shadow-md transform transition-all ${p.nickname === gameState.nickname
+                    ? "bg-gradient-to-r from-yellow-500 to-orange-500 scale-105 border-2 border-white text-white"
+                    : "bg-white/10 text-white"
+                    }`}
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="font-bold text-lg">{p.nickname}</span>
                   </div>
-                );
-              })}
+                  <span className="font-mono font-bold text-xl">{p.score}</span>
+                </div>
+              ))}
             </div>
           </div>
 
-          <div className="flex-1 w-full max-w-md space-y-3">
-            <h3 className="text-center text-sm font-bold text-white/50 uppercase tracking-widest mb-2">Sıralama</h3>
-            {leaderboard.map((p, i) => (
-              <div
-                key={i}
-                className={`flex items-center justify-between p-4 rounded-xl shadow-md transform transition-all ${p.nickname === gameState.nickname
-                  ? "bg-gradient-to-r from-yellow-500 to-orange-500 scale-105 border-2 border-white text-white"
-                  : "bg-white/10 text-white"
-                  }`}
-              >
-                <div className="flex items-center gap-4">
-                  <span className="font-bold text-lg">{p.nickname}</span>
-                </div>
-                <span className="font-mono font-bold text-xl">{p.score}</span>
-              </div>
-            ))}
+          <div className={`mt-auto pt-8 text-sm ${quizInfo?.backgroundColor ? "text-white/80" : "text-blue-300"}`}>
+            Diğer soruya geçilmesi bekleniyor...
           </div>
-        </div>
 
-        <div className={`mt-auto pt-8 text-sm ${quizInfo?.backgroundColor ? "text-white/80" : "text-blue-300"}`}>
-          Diğer soruya geçilmesi bekleniyor...
+          {nextQuestionHasAudio && (
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-red-600/90 text-white px-8 py-6 rounded-2xl shadow-2xl z-50 animate-pulse text-center">
+              <span className="text-4xl block mb-2">🔊</span>
+              <h3 className="text-2xl font-bold">Lütfen Sessiz Olun!</h3>
+              <p className="text-lg">Sıradaki soru sesli sorudur.</p>
+            </div>
+          )}
         </div>
-
-        {nextQuestionHasAudio && (
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-red-600/90 text-white px-8 py-6 rounded-2xl shadow-2xl z-50 animate-pulse text-center">
-            <span className="text-4xl block mb-2">🔊</span>
-            <h3 className="text-2xl font-bold">Lütfen Sessiz Olun!</h3>
-            <p className="text-lg">Sıradaki soru sesli sorudur.</p>
-          </div>
-        )}
       </div>
     );
   }
@@ -664,16 +677,26 @@ export default function PlayerGame() {
         ></div>
       </div>
 
-      <div className="flex-1 p-6 flex flex-col items-center justify-center max-w-3xl mx-auto w-full">
+      <div className="flex-1 p-6 flex flex-col items-center justify-start pt-8 md:pt-16 max-w-3xl mx-auto w-full">
         <div className="mb-8 text-center">
           {currentQuestion?.image && (
-            <div className="mb-6 flex justify-center">
+            <div className="mb-6 flex justify-center w-full">
               <img
                 src={`http://localhost:5000${currentQuestion.image}`}
                 alt="Soru Görseli"
-                className="max-h-64 rounded-lg shadow-md object-contain"
+                loading="lazy"
+                className="
+                  max-h-[30vh]
+                  md:max-h-64
+                  lg:max-h-80
+                  max-w-full
+                  w-auto
+                  h-auto
+                  rounded-lg
+                  shadow-md
+                  object-contain
+                "
               />
-
             </div>
           )}
 
