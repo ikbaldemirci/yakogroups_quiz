@@ -12,6 +12,7 @@ const calculateScore = (basePoints, remainingTime, totalTime) => {
 
 export const gameSocket = () => {
   const disconnectTimeouts = new Map();
+  const questionTimers = new Map();
 
   io.on("connection", (socket) => {
     console.log("Client connected:", socket.id);
@@ -23,7 +24,31 @@ export const gameSocket = () => {
       return questions[session.currentQuestionIndex];
     };
 
+    const clearQuestionTimer = (lobbyCode) => {
+      if (questionTimers.has(lobbyCode)) {
+        clearTimeout(questionTimers.get(lobbyCode));
+        questionTimers.delete(lobbyCode);
+        console.log(`[Timer] Cleared for lobby: ${lobbyCode}`);
+      }
+    };
+
+    const setQuestionTimer = (lobbyCode, durationSeconds) => {
+      clearQuestionTimer(lobbyCode);
+
+      const timeoutId = setTimeout(async () => {
+        console.log(`[Timer] Expired for lobby: ${lobbyCode}. Transitioning automatically...`);
+        const session = await GameSession.findOne({ lobbyCode });
+        if (session && session.status === "active" && session.currentPhase === "question") {
+          await goToLeaderboard(lobbyCode, session);
+        }
+      }, (durationSeconds + 1) * 1000);
+
+      questionTimers.set(lobbyCode, timeoutId);
+      console.log(`[Timer] Set for lobby: ${lobbyCode} (${durationSeconds}s)`);
+    };
+
     const goToLeaderboard = async (lobbyCode, session) => {
+      clearQuestionTimer(lobbyCode);
       session.currentPhase = "leaderboard";
       await session.save();
 
@@ -338,6 +363,7 @@ export const gameSocket = () => {
       if (session.currentPhase === "wheel") {
         io.to(lobbyCode).emit("show-wheel");
       } else {
+        setQuestionTimer(lobbyCode, question.durationSeconds);
         io.to(lobbyCode).emit("question-changed", {
           index: 0,
           question,
@@ -371,6 +397,7 @@ export const gameSocket = () => {
       await session.save();
 
       const question = await getCurrentQuestion(session);
+      setQuestionTimer(lobbyCode, question.durationSeconds);
       io.to(lobbyCode).emit("question-changed", {
         index: session.currentQuestionIndex,
         question,
@@ -498,6 +525,7 @@ export const gameSocket = () => {
       }).length;
 
       if (finishedPlayersCount >= connectedPlayers.length && connectedPlayers.length > 0) {
+        clearQuestionTimer(lobbyCode);
         await goToLeaderboard(lobbyCode, session);
       }
     }
@@ -555,6 +583,7 @@ export const gameSocket = () => {
           session.currentPresenter = null;
           session.currentQuestionStartedAt = new Date();
           await session.save();
+          setQuestionTimer(lobbyCode, nextItem.durationSeconds);
           io.to(lobbyCode).emit("question-changed", {
             index: session.currentQuestionIndex,
             question: nextItem,
