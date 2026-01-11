@@ -191,17 +191,16 @@ export default function AdminLobby() {
 
       questions.forEach((q, idx) => {
         const answer = player.answers?.find((a: any) => a.questionId.toString() === q._id.toString());
-        const header = `${idx + 1}. ${q.text.substring(0, 30)}${q.text.length > 30 ? "..." : ""}`;
+        const header = `${idx + 1}. ${q.text.substring(0, 20)}${q.text.length > 20 ? "..." : ""}`;
 
         if (answer) {
           const selectedText = q.options[answer.selectedOptionIndex]?.text || "Cevap Yok";
           const isCorrect = answer.isCorrect ? "(Doğru)" : "(Yanlış)";
 
-          const correctIdx = q.correctOptionIndex;
-          const correctOptionText = q.options[correctIdx]?.text || "Bilinmiyor";
-
+          const correctOptionText = q.options[q.correctOptionIndex]?.text || "Bilinmiyor";
           const isWrong = answer.isCorrect ? "" : ` (Doğru Cevap: ${correctOptionText})`;
-          row[header] = `${selectedText} ${isCorrect} ${isWrong}`;
+
+          row[header] = `${selectedText} ${isCorrect}${isWrong}`;
         } else {
           row[header] =  "Cevaplamadı";
         }
