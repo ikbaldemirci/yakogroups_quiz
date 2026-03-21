@@ -563,6 +563,20 @@ export const gameSocket = () => {
         session.currentQuestionIndex += 1;
         const nextItem = await getCurrentQuestion(session);
 
+        if (!nextItem) {
+          console.error("Game transition error: nextItem is undefined at index", session.currentQuestionIndex);
+          session.status = "finished";
+          session.finishedAt = new Date();
+          await session.save();
+          const allItems = await Question.find({ quiz: session.quiz }).sort({ order: 1 }).lean();
+          io.to(lobbyCode).emit("game-finished", {
+            leaderboard: [...session.players].sort((a, b) => b.score - a.score),
+            players: session.players,
+            quizItems: allItems,
+          });
+          return;
+        }
+
         if (nextItem.type === "ad") {
           session.currentPhase = "ad";
           await session.save();

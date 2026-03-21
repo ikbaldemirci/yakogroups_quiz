@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import { API_URL } from "../utils/config";
 import Link from "next/link";
 
 export default function VerifyEmail() {
@@ -19,7 +20,7 @@ export default function VerifyEmail() {
                     return;
                 }
 
-                const response = await fetch(`http://localhost:5000/api/auth/verify-email?token=${token}`);
+                const response = await fetch(`${API_URL}/api/auth/verify-email?token=${token}`);
                 const data = await response.json();
 
                 if (!response.ok) {

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { API_URL } from "../utils/config";
 import QuizCard from "./QuizCard";
 
 interface Quiz {
@@ -92,7 +93,7 @@ export default function SuperAdminView({ quizzes, currentCompanyName, onStartSes
                                     <div className="w-16 h-10 bg-zinc-100 rounded-lg flex items-center justify-center text-xl overflow-hidden border border-gray-100">
                                         {companyQuizzes[0]?.company?.logo ? (
                                             <img
-                                                src={`http://localhost:5000${companyQuizzes[0].company.logo}`}
+                                                src={`${API_URL}${companyQuizzes[0].company.logo}`}
                                                 alt={companyName}
                                                 className="w-full h-full object-contain bg-white p-1"
                                             />

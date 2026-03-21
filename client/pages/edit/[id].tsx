@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import { API_URL } from "../../utils/config";
 import ProtectedRoute from "../../components/ProtectedRoute";
 import {
     DragDropContext,
@@ -68,7 +69,7 @@ export default function EditQuiz() {
         const fetchQuizData = async () => {
             try {
                 const token = localStorage.getItem("token");
-                const quizRes = await fetch(`http://localhost:5000/api/quizzes/${id}`, {
+                const quizRes = await fetch(`${API_URL}/api/quizzes/${id}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (!quizRes.ok) throw new Error("Sınav bulunamadı");
@@ -78,10 +79,10 @@ export default function EditQuiz() {
                 setQuizDescription(quiz.description);
                 setBackgroundColor(quiz.backgroundColor || "#2e1065");
                 if (quiz.coverImage) {
-                    setCoverPreview(`http://localhost:5000${quiz.coverImage}`);
+                    setCoverPreview(`${API_URL}${quiz.coverImage}`);
                 }
 
-                const qRes = await fetch(`http://localhost:5000/api/questions?quizId=${id}`, {
+                const qRes = await fetch(`${API_URL}/api/questions?quizId=${id}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (qRes.ok) {
@@ -267,12 +268,12 @@ export default function EditQuiz() {
                 }
             }
 
-            let coverImageUrl = coverPreview?.replace("http://localhost:5000", "") || "";
+            let coverImageUrl = coverPreview?.replace(`${API_URL}`, "") || "";
 
             if (coverImageFile) {
                 const formData = new FormData();
                 formData.append("file", coverImageFile);
-                const uploadRes = await fetch("http://localhost:5000/api/upload?type=logos", {
+                const uploadRes = await fetch(`${API_URL}/api/upload?type=logos`, {
                     method: "POST",
                     headers: { Authorization: `Bearer ${token}` },
                     body: formData,
@@ -289,7 +290,7 @@ export default function EditQuiz() {
                     if (q.imageFile) {
                         const formData = new FormData();
                         formData.append("file", q.imageFile);
-                        const res = await fetch("http://localhost:5000/api/upload?type=questions", {
+                        const res = await fetch(`${API_URL}/api/upload?type=questions`, {
                             method: "POST",
                             headers: { Authorization: `Bearer ${token}` },
                             body: formData,
@@ -304,7 +305,7 @@ export default function EditQuiz() {
                     if (q.audioFile) {
                         const formData = new FormData();
                         formData.append("file", q.audioFile);
-                        const res = await fetch("http://localhost:5000/api/upload?type=audio", {
+                        const res = await fetch(`${API_URL}/api/upload?type=audio`, {
                             method: "POST",
                             headers: { Authorization: `Bearer ${token}` },
                             body: formData,
@@ -323,7 +324,7 @@ export default function EditQuiz() {
                 })
             );
 
-            const res = await fetch(`http://localhost:5000/api/quizzes/${id}`, {
+            const res = await fetch(`${API_URL}/api/quizzes/${id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -549,7 +550,7 @@ export default function EditQuiz() {
                                                                         </div>
                                                                         {q.image && !q.imageFile && (
                                                                             <div className="mb-2">
-                                                                                <img src={`http://localhost:5000${q.image}`} className="h-20 object-contain rounded border" />
+                                                                                <img src={`${API_URL}${q.image}`} className="h-20 object-contain rounded border" />
                                                                             </div>
                                                                         )}
                                                                         <input
@@ -587,7 +588,7 @@ export default function EditQuiz() {
                                                                         </div>
                                                                         {q.audio && !q.audioFile && (
                                                                             <div className="mb-2 text-xs text-gray-600">
-                                                                                Mevcut Ses: <a href={`http://localhost:5000${q.audio}`} target="_blank" className="text-blue-500 underline">Dinle</a>
+                                                                                Mevcut Ses: <a href={`${API_URL}${q.audio}`} target="_blank" className="text-blue-500 underline">Dinle</a>
                                                                             </div>
                                                                         )}
                                                                         <input

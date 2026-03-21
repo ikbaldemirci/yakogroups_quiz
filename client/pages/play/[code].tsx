@@ -1,4 +1,5 @@
 import { useRouter } from "next/router";
+import { API_URL } from "../../utils/config";
 import { useEffect, useState, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 import dynamic from "next/dynamic";
@@ -102,7 +103,7 @@ export default function PlayerGame() {
       <div className="w-full md:flex-1 flex justify-center md:justify-start order-1 md:order-1 mb-4 md:mb-0">
         {quizInfo.coverImage ? (
           <img
-            src={`http://localhost:5000${quizInfo.coverImage}`}
+            src={`${API_URL}${quizInfo.coverImage}`}
             alt="Şirket Logosu"
             className="h-16 md:h-20 max-w-[150px] md:max-w-[200px] object-contain bg-white px-4 py-2 rounded-lg shadow-md"
           />
@@ -130,7 +131,7 @@ export default function PlayerGame() {
   useEffect(() => {
     if (!lobbyCode) return;
 
-    socket = io("http://localhost:5000");
+    socket = io(`${API_URL}`);
 
     socket.on("connect", () => {
       console.log("Connected to server");
@@ -395,7 +396,7 @@ export default function PlayerGame() {
             {quizInfo.coverImage && (
               <div className="bg-white p-4 rounded-2xl shadow-xl transform hover:scale-105 transition-transform duration-300 w-48 h-48 flex items-center justify-center">
                 <img
-                  src={`http://localhost:5000${quizInfo.coverImage}`}
+                  src={`${API_URL}${quizInfo.coverImage}`}
                   alt="Quiz Logo"
                   className="max-w-full max-h-full object-contain"
                 />
@@ -682,7 +683,7 @@ export default function PlayerGame() {
           {currentQuestion?.image && (
             <div className="mb-6 flex justify-center w-full">
               <img
-                src={`http://localhost:5000${currentQuestion.image}`}
+                src={`${API_URL}${currentQuestion.image}`}
                 alt="Soru Görseli"
                 loading="lazy"
                 className="
@@ -702,7 +703,7 @@ export default function PlayerGame() {
 
           {currentQuestion?.audio && (currentQuestion.playAudioOnClient !== false) && (
             <div className="mb-4">
-              <audio ref={audioRef} src={`http://localhost:5000${currentQuestion.audio}`} controls className="mx-auto" />
+              <audio ref={audioRef} src={`${API_URL}${currentQuestion.audio}`} controls className="mx-auto" />
             </div>
           )}
 

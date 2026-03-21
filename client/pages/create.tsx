@@ -1,5 +1,6 @@
 import { useState, ChangeEvent, useEffect } from "react";
 import { useRouter } from "next/router";
+import { API_URL } from "../utils/config";
 import Link from "next/link";
 import ProtectedRoute from "../components/ProtectedRoute";
 import {
@@ -230,7 +231,7 @@ export default function CreateQuiz() {
         const formData = new FormData();
         formData.append("file", coverImageFile);
 
-        const uploadRes = await fetch("http://localhost:5000/api/upload?type=logos", {
+        const uploadRes = await fetch(`${API_URL}/api/upload?type=logos`, {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
           body: formData,
@@ -247,7 +248,7 @@ export default function CreateQuiz() {
           if (q.imageFile) {
             const formData = new FormData();
             formData.append("file", q.imageFile);
-            const res = await fetch("http://localhost:5000/api/upload?type=questions", {
+            const res = await fetch(`${API_URL}/api/upload?type=questions`, {
               method: "POST",
               headers: { Authorization: `Bearer ${token}` },
               body: formData,
@@ -262,7 +263,7 @@ export default function CreateQuiz() {
           if (q.audioFile) {
             const formData = new FormData();
             formData.append("file", q.audioFile);
-            const res = await fetch("http://localhost:5000/api/upload?type=audio", {
+            const res = await fetch(`${API_URL}/api/upload?type=audio`, {
               method: "POST",
               headers: { Authorization: `Bearer ${token}` },
               body: formData,
@@ -281,7 +282,7 @@ export default function CreateQuiz() {
         })
       );
 
-      const quizRes = await fetch("http://localhost:5000/api/quizzes", {
+      const quizRes = await fetch(`${API_URL}/api/quizzes`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

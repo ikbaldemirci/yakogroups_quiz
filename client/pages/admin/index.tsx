@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import { API_URL } from "../../utils/config";
 import ProtectedRoute from "../../components/ProtectedRoute";
 import { useAuth } from "../../context/AuthContext";
 import QuizCard from "../../components/QuizCard";
@@ -32,7 +33,7 @@ export default function AdminDashboard() {
         const token = localStorage.getItem("token");
         if (!token) return;
 
-        const res = await fetch("http://localhost:5000/api/quizzes", {
+        const res = await fetch(`${API_URL}/api/quizzes`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (!res.ok) throw new Error("Failed to fetch");
@@ -51,7 +52,7 @@ export default function AdminDashboard() {
   const createSession = async (quizId: string) => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/api/game-sessions", {
+      const res = await fetch(`${API_URL}/api/game-sessions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -73,7 +74,7 @@ export default function AdminDashboard() {
     const token = localStorage.getItem("token");
     if (!confirm("Bu sınavı kalıcı olarak silmek istediğine emin misin?")) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/quizzes/hard/${quizId}`, {
+      const res = await fetch(`${API_URL}/api/quizzes/hard/${quizId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -96,7 +97,7 @@ export default function AdminDashboard() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const uploadRes = await fetch("http://localhost:5000/api/upload?type=logos", {
+      const uploadRes = await fetch(`${API_URL}/api/upload?type=logos`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -105,7 +106,7 @@ export default function AdminDashboard() {
       if (!uploadRes.ok) throw new Error("Logo yüklenemedi.");
       const { url } = await uploadRes.json();
 
-      const updateRes = await fetch("http://localhost:5000/api/auth/logo", {
+      const updateRes = await fetch(`${API_URL}/api/auth/logo`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -127,8 +128,8 @@ export default function AdminDashboard() {
     if (!confirm("Şirket logosunu silmek istediğine emin misin?")) return;
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/api/auth/logo", {
-        method: "PUT",
+      const res = await fetch(`${API_URL}/api/auth/logo`, {
+        method: "DELETE",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -156,7 +157,7 @@ export default function AdminDashboard() {
                   {logo ? (
                     <>
                       <img
-                        src={`http://localhost:5000${logo}`}
+                        src={`${API_URL}${logo}`}
                         alt="Company Logo"
                         className="w-full h-full object-contain p-3"
                       />

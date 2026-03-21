@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { API_URL } from "../utils/config";
 import Link from "next/link";
 
 export default function ForgotPassword() {
@@ -12,7 +13,7 @@ export default function ForgotPassword() {
         setMessage("");
 
         try {
-            const response = await fetch("http://localhost:5000/api/auth/forgot-password", {
+            const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email }),

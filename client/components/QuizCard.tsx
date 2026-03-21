@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { API_URL } from "../utils/config";
 import Link from "next/link";
 
 interface Quiz {
@@ -28,7 +29,7 @@ export default function QuizCard({ quiz, onStartSession, onDelete, showCompanyBa
             {quiz.coverImage && !imageError ? (
                 <div className="h-40 w-full relative bg-gray-50 flex items-center justify-center p-4">
                     <img
-                        src={`http://localhost:5000${quiz.coverImage}`}
+                        src={`${API_URL}${quiz.coverImage}`}
                         alt={quiz.title}
                         className="max-w-full max-h-full object-contain"
                         onError={() => setImageError(true)}

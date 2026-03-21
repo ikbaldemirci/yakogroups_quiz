@@ -1,4 +1,5 @@
 import { useRouter } from "next/router";
+import { API_URL, CLIENT_URL } from "../../../utils/config";
 import { useEffect, useState, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 import dynamic from "next/dynamic";
@@ -54,7 +55,7 @@ export default function AdminLobby() {
   useEffect(() => {
     if (!lobbyCode) return;
 
-    socket = io("http://localhost:5000");
+    socket = io(`${API_URL}`);
 
     socket.emit("join-lobby", { lobbyCode, nickname: "ADMIN_OBSERVER", isAdmin: true });
 
@@ -202,7 +203,7 @@ export default function AdminLobby() {
 
           row[header] = `${selectedText} ${isCorrect}${isWrong}`;
         } else {
-          row[header] =  "Cevaplamadı";
+          row[header] = "Cevaplamadı";
         }
       });
 
@@ -233,7 +234,7 @@ export default function AdminLobby() {
 
   if (!lobbyCode) return <div className="p-10 text-center text-white">Yükleniyor...</div>;
 
-  const joinLink = `http://localhost:3000/play/${lobbyCode}`;
+  const joinLink = `${CLIENT_URL}/play/${lobbyCode}`;
 
   return (
     <ProtectedRoute>
@@ -383,7 +384,7 @@ export default function AdminLobby() {
                     {gameState.currentQuestionImage && (
                       <div className="mb-4 flex justify-center">
                         <img
-                          src={`http://localhost:5000${gameState.currentQuestionImage}`}
+                          src={`${API_URL}${gameState.currentQuestionImage}`}
                           alt="Soru Görseli"
                           className="max-h-48 rounded-lg shadow-sm object-contain bg-white"
                         />
@@ -392,7 +393,7 @@ export default function AdminLobby() {
                     <h2 className="text-3xl font-bold">{currentQuestionText}</h2>
                     <p className="text-slate-500 mt-4">Oyuncular cevaplıyor...</p>
                     {gameState.currentQuestionAudio && (
-                      <audio ref={audioRef} src={`http://localhost:5000${gameState.currentQuestionAudio}`} controls className="mt-4 mx-auto" />
+                      <audio ref={audioRef} src={`${API_URL}${gameState.currentQuestionAudio}`} controls className="mt-4 mx-auto" />
                     )}
                   </div>
                 )}

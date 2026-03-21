@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import { API_URL } from "../utils/config";
 import Link from "next/link";
 
 export default function ResetPassword() {
@@ -15,7 +16,7 @@ export default function ResetPassword() {
 
         const checkToken = async () => {
             try {
-                const response = await fetch(`http://localhost:5000/api/auth/check-reset-token?token=${token}`);
+                const response = await fetch(`${API_URL}/api/auth/check-reset-token?token=${token}`);
                 if (!response.ok) {
                     const data = await response.json();
                     throw new Error(data.message || "Geçersiz link.");
@@ -43,7 +44,7 @@ export default function ResetPassword() {
         setMessage("");
 
         try {
-            const response = await fetch("http://localhost:5000/api/auth/reset-password", {
+            const response = await fetch(`${API_URL}/api/auth/reset-password`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ token, password }),

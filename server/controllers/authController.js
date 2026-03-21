@@ -45,7 +45,7 @@ export const signup = async (req, res) => {
             verificationToken,
         });
 
-        const verificationUrl = `http://localhost:3000/verify-email?token=${verificationToken}`;
+        const verificationUrl = `${process.env.CLIENT_URL}/verify-email?token=${verificationToken}`;
 
         const message = `YakoGroups Quiz'e hoş geldiniz! Lütfen hesabınızı doğrulamak için şu linke tıklayın: ${verificationUrl}`;
         const html = `
@@ -176,7 +176,7 @@ export const forgotPassword = async (req, res) => {
         company.resetPasswordExpire = Date.now() + 3600000;
         await company.save();
 
-        const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`;
+        const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}`;
         const message = `YakoGroups Quiz şifrenizi sıfırlamak için şu linke tıklayın: ${resetUrl}`;
         const html = `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
