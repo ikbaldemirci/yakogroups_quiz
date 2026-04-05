@@ -314,7 +314,7 @@ export default function CreateQuiz() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 text-gray-900 font-sans flex flex-col">
-        <div className="max-w-5xl mx-auto w-full bg-white shadow-2xl rounded-2xl overflow-hidden mt-10 mb-24">
+        <div className="max-w-5xl mx-auto w-full bg-white shadow-none sm:shadow-2xl rounded-none sm:rounded-2xl overflow-hidden mt-0 sm:mt-6 mb-0 sm:mb-6">
 
           <div className="bg-gradient-to-r from-indigo-600 to-violet-600 px-10 py-8">
             <h1 className="text-3xl font-semibold text-white tracking-tight">
@@ -651,37 +651,68 @@ export default function CreateQuiz() {
             </section>
           </div>
 
-          <div className="sticky bottom-0 bg-white/90 backdrop-blur border-t border-gray-200 px-10 py-6 flex justify-between items-center">
-            <div className="flex gap-4">
-              <button
-                onClick={addQuestion}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold border-b-4 border-indigo-800 transition shadow-lg active:scale-95"
-              >
-                + Yeni Soru Ekle
-              </button>
-              <button
-                onClick={addAd}
-                className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-xl font-bold border-b-4 border-amber-700 transition shadow-lg active:scale-95"
-              >
-                + Reklam Ekle
-              </button>
-            </div>
-
-            <div className="flex gap-4">
-              <button
-                onClick={() => router.push("/admin")}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg transition"
-              >
-                Vazgeç
-              </button>
-
+          <div className="sticky bottom-0 bg-white border-t border-gray-100 shadow-[0_-4px_24px_rgba(0,0,0,0.08)]">
+            <div className="sm:hidden px-4 py-3 space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={addQuestion}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center active:scale-95 transition shadow-lg border-b-4 border-indigo-800"
+                >
+                  + Yeni Soru Ekle
+                </button>
+                <button
+                  onClick={addAd}
+                  className="bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center active:scale-95 transition shadow-lg border-b-4 border-amber-700"
+                >
+                  + Reklam Ekle
+                </button>
+              </div>
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-lg font-semibold transition disabled:opacity-50"
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-bold text-sm flex items-center justify-center active:scale-95 transition disabled:opacity-50 shadow-lg border-b-4 border-emerald-800"
               >
                 {loading ? "Kaydediliyor..." : "Kaydet ve Oluştur"}
               </button>
+              <button
+                onClick={() => router.push("/admin")}
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-lg font-medium text-sm transition"
+              >
+                Vazgeç
+              </button>
+            </div>
+            <div className="hidden sm:flex justify-between items-center px-10 py-6">
+              <div className="flex gap-4">
+                <button
+                  onClick={addQuestion}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold border-b-4 border-indigo-800 transition shadow-lg active:scale-95"
+                >
+                  + Yeni Soru Ekle
+                </button>
+                <button
+                  onClick={addAd}
+                  className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-xl font-bold border-b-4 border-amber-700 transition shadow-lg active:scale-95"
+                >
+                  + Reklam Ekle
+                </button>
+              </div>
+
+              <div className="flex gap-4">
+                <button
+                  onClick={() => router.push("/admin")}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg transition"
+                >
+                  Vazgeç
+                </button>
+
+                <button
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-lg font-semibold transition disabled:opacity-50"
+                >
+                  {loading ? "Kaydediliyor..." : "Kaydet ve Oluştur"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

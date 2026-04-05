@@ -149,11 +149,11 @@ export default function AdminDashboard() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50 pb-20 font-sans">
-        <div className="bg-white border-b border-gray-200 mb-8 px-8 py-6">
-          <header className="max-w-6xl mx-auto flex justify-between items-end">
-            <div className="flex items-end gap-6">
-              <div className="relative group">
-                <div className="w-48 h-24 bg-gray-50 rounded-2xl flex items-center justify-center text-3xl border-2 border-dashed border-gray-200 overflow-hidden bg-white hover:border-indigo-400 transition-colors shadow-sm relative group">
+        <div className="bg-white border-b border-gray-200 mb-8 px-4 sm:px-8 py-4 sm:py-6">
+          <header className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-end gap-3 sm:gap-6 w-full sm:w-auto">
+              <div className="relative group w-full sm:w-auto">
+                <div className="w-full h-32 sm:w-48 sm:h-24 bg-gray-50 rounded-2xl flex items-center justify-center text-3xl border-2 border-dashed border-gray-200 overflow-hidden bg-white hover:border-indigo-400 transition-colors shadow-sm relative group">
                   {logo ? (
                     <>
                       <img
@@ -203,7 +203,7 @@ export default function AdminDashboard() {
             </div>
             <Link
               href="/create"
-              className="bg-indigo-600 text-white px-8 py-4 rounded-2xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200 font-bold flex items-center gap-3 active:scale-95"
+              className="w-full sm:w-auto bg-indigo-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-2xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200 font-bold flex items-center justify-center gap-3 active:scale-95"
             >
               <span className="text-xl">+</span> Yeni Sınav Oluştur
             </Link>

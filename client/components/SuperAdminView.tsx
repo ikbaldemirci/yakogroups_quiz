@@ -48,7 +48,7 @@ export default function SuperAdminView({ quizzes, currentCompanyName, onStartSes
             <section>
                 <div className="flex items-center gap-3 mb-6 border-l-4 border-indigo-600 pl-4">
                     <h2 className="text-2xl font-bold text-gray-900">Kendi Sınavlarım</h2>
-                    <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2.5 py-1 rounded-full">
+                    <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap shrink-0">
                         {myQuizzes.length}
                     </span>
                 </div>
@@ -74,7 +74,7 @@ export default function SuperAdminView({ quizzes, currentCompanyName, onStartSes
             <section>
                 <div className="flex items-center gap-3 mb-8 border-l-4 border-amber-500 pl-4">
                     <h2 className="text-2xl font-bold text-gray-900">Diğer Şirketlerin Sınavları</h2>
-                    <span className="bg-amber-100 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-full">
+                    <span className="bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap shrink-0">
                         {Object.keys(groupedOtherQuizzes).length} Şirket
                     </span>
                 </div>

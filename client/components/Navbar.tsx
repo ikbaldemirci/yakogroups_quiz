@@ -26,29 +26,31 @@ export default function Navbar() {
     };
 
     return (
-        <nav className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black sticky top-0 z-[100]">
-            <Link href="/" className="flex items-center gap-2">
+        <nav className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black sticky top-0 z-[100]">
+            <Link href="/" className="flex items-center gap-2 shrink-0">
                 <img
                     src="https://www.yakogroups.com/wp-content/themes/yakogroup/assets/img/logo.png"
                     alt="Yako Groups"
-                    className="h-8 w-auto object-contain dark:invert"
+                    className="h-6 sm:h-8 w-auto object-contain dark:invert"
                 />
             </Link>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
                 {isLoggedIn ? (
                     <>
-                        <span className="text-sm text-zinc-600 dark:text-zinc-400 font-medium">
+                        <span className="hidden sm:block text-sm text-zinc-600 dark:text-zinc-400 font-medium">
                             Hoş geldin, <span className="text-blue-600 font-bold">{companyName}</span>
                         </span>
-                        <Link
-                            href="/admin"
-                            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
-                        >
-                            Dashboard
-                        </Link>
+                        {router.pathname !== "/admin" && (
+                            <Link
+                                href="/admin"
+                                className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+                            >
+                                Dashboard
+                            </Link>
+                        )}
                         <button
                             onClick={handleLogout}
-                            className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                            className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                         >
                             Çıkış Yap
                         </button>
@@ -56,7 +58,7 @@ export default function Navbar() {
                 ) : (
                     <Link
                         href="/signup"
-                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+                        className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
                     >
                         Admin Dashboard
                     </Link>

@@ -343,7 +343,7 @@ export default function PlayerGame() {
 
     setSelectedOption(index);
 
-    socket.emit("submit-answer", {
+    socket?.emit("submit-answer", {
       lobbyCode,
       nickname: gameState.nickname,
       questionId: currentQuestion._id,
@@ -376,14 +376,14 @@ export default function PlayerGame() {
 
   if (!lobbyCode)
     return (
-      <div className="min-h-screen bg-indigo-900 flex items-center justify-center text-white">
+      <div className="flex-1 bg-indigo-900 flex items-center justify-center text-white">
         Yükleniyor...
       </div>
     );
 
   if (!joined) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-900 to-purple-800 flex flex-col items-center justify-center p-4 font-sans relative">
+      <div className="flex-1 bg-gradient-to-br from-indigo-900 to-purple-800 flex flex-col items-center justify-center p-4 font-sans relative">
 
         {quizInfo && (
           <div className="mb-8 text-center flex flex-col items-center">
@@ -443,7 +443,7 @@ export default function PlayerGame() {
   if (gameState.status === "waiting") {
     return (
       <div
-        className="min-h-screen flex flex-col p-4 relative"
+        className="flex-1 flex flex-col p-4 relative"
         style={{
           backgroundColor: quizInfo?.backgroundColor || undefined,
           color: quizInfo?.backgroundColor ? "white" : undefined // Ensure text is visible
@@ -475,7 +475,7 @@ export default function PlayerGame() {
 
     return (
       <div
-        className="min-h-screen flex flex-col p-4 relative"
+        className="flex-1 flex flex-col p-4 relative"
         style={{
           backgroundColor: quizInfo?.backgroundColor || undefined,
           color: quizInfo?.backgroundColor ? "white" : undefined
@@ -527,7 +527,7 @@ export default function PlayerGame() {
 
   if (gameState.currentPhase === "wheel") {
     return (
-      <div className="min-h-screen bg-purple-900 flex flex-col text-white overflow-hidden relative">
+      <div className="flex-1 bg-purple-900 flex flex-col text-white overflow-hidden relative">
 
         {Header}
 
@@ -571,7 +571,7 @@ export default function PlayerGame() {
   if (gameState.currentPhase === "leaderboard") {
     return (
       <div
-        className="min-h-screen flex flex-col items-center relative"
+        className="flex-1 flex flex-col items-center relative"
         style={{
           backgroundColor: quizInfo?.backgroundColor || undefined,
           color: quizInfo?.backgroundColor ? "white" : undefined
@@ -656,7 +656,7 @@ export default function PlayerGame() {
 
   return (
     <div
-      className="min-h-screen flex flex-col font-sans relative"
+      className="flex-1 flex flex-col font-sans relative"
       style={{
         backgroundColor: quizInfo?.backgroundColor || undefined,
         backgroundImage: !quizInfo?.backgroundColor ? "linear-gradient(to bottom right, #f1f5f9, #cbd5e1)" : "none"

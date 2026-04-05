@@ -240,7 +240,7 @@ export default function AdminLobby() {
     <ProtectedRoute>
       <div className="min-h-screen bg-slate-900 text-white font-sans p-8">
         <div className="max-w-5xl mx-auto">
-          <div className="flex justify-between items-center mb-12 border-b border-slate-700 pb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-12 border-b border-slate-700 pb-6">
             <div>
               <span className="text-slate-400 text-sm uppercase tracking-wider">
                 Lobby Code
@@ -249,9 +249,9 @@ export default function AdminLobby() {
                 {lobbyCode}
               </h1>
             </div>
-            <div className="bg-slate-800 px-6 py-3 rounded-lg border border-slate-700">
+            <div className="bg-slate-800 px-4 sm:px-6 py-3 rounded-lg border border-slate-700 w-full sm:w-auto">
               <p className="text-slate-400 text-xs mb-1">Katılım Linki</p>
-              <p className="text-blue-400 font-mono text-lg">{joinLink}</p>
+              <p className="text-blue-400 font-mono text-sm sm:text-lg break-all">{joinLink}</p>
             </div>
           </div>
 

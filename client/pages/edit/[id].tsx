@@ -359,7 +359,7 @@ export default function EditQuiz() {
     return (
         <ProtectedRoute>
             <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 text-gray-900 font-sans flex flex-col">
-                <div className="max-w-5xl mx-auto w-full bg-white shadow-2xl rounded-2xl overflow-hidden mt-10 mb-24">
+                <div className="max-w-5xl mx-auto w-full bg-white sm:shadow-2xl sm:rounded-2xl overflow-hidden sm:my-6 flex-1 sm:flex-none">
 
                     <div className="bg-gradient-to-r from-orange-500 to-red-500 px-10 py-8">
                         <h1 className="text-3xl font-semibold text-white tracking-tight">
@@ -696,35 +696,66 @@ export default function EditQuiz() {
                         </section>
                     </div>
 
-                    <div className="sticky bottom-0 bg-white/90 backdrop-blur border-t border-gray-200 px-10 py-6 flex justify-between items-center">
-                        <div className="flex gap-4">
-                            <button
-                                onClick={addQuestion}
-                                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-bold border-b-4 border-gray-300 transition shadow-lg active:scale-95"
-                            >
-                                + Yeni Soru
-                            </button>
-                            <button
-                                onClick={addAd}
-                                className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-xl font-bold border-b-4 border-amber-700 transition shadow-lg active:scale-95"
-                            >
-                                + Reklam Ekle
-                            </button>
-                        </div>
-                        <div className="flex gap-4">
-                            <button
-                                onClick={() => router.push("/admin")}
-                                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg transition"
-                            >
-                                Vazgeç
-                            </button>
+                    <div className="sticky bottom-0 bg-white border-t border-gray-100 shadow-[0_-4px_24px_rgba(0,0,0,0.08)]">
+                        <div className="sm:hidden px-4 py-3 space-y-2">
+                            <div className="grid grid-cols-2 gap-2">
+                                <button
+                                    onClick={addQuestion}
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center active:scale-95 transition shadow-lg border-b-4 border-indigo-800"
+                                >
+                                    + Yeni Soru
+                                </button>
+                                <button
+                                    onClick={addAd}
+                                    className="bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center active:scale-95 transition shadow-lg border-b-4 border-amber-700"
+                                >
+                                    + Reklam Ekle
+                                </button>
+                            </div>
                             <button
                                 onClick={handleSubmit}
                                 disabled={saving}
-                                className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-lg font-semibold transition disabled:opacity-50"
+                                className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3.5 rounded-xl font-bold text-sm flex items-center justify-center active:scale-95 transition disabled:opacity-50 shadow-lg border-b-4 border-orange-800"
                             >
                                 {saving ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
                             </button>
+                            <button
+                                onClick={() => router.push("/admin")}
+                                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-lg font-medium text-sm transition"
+                            >
+                                Vazgeç
+                            </button>
+                        </div>
+                        <div className="hidden sm:flex justify-between items-center px-10 py-6">
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={addQuestion}
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold border-b-4 border-indigo-800 transition shadow-lg active:scale-95"
+                                >
+                                    + Yeni Soru
+                                </button>
+                                <button
+                                    onClick={addAd}
+                                    className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-xl font-bold border-b-4 border-amber-700 transition shadow-lg active:scale-95"
+                                >
+                                    + Reklam Ekle
+                                </button>
+                            </div>
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={() => router.push("/admin")}
+                                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg transition"
+                                >
+                                    Vazgeç
+                                </button>
+                                <button
+                                    onClick={handleSubmit}
+                                    disabled={saving}
+                                    className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-lg font-semibold transition disabled:opacity-50"
+                                >
+                                    {saving ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
+                                </button>
+                            </div>
                         </div>
                     </div>
 
