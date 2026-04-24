@@ -116,6 +116,7 @@ export const login = async (req, res) => {
             email: company.email,
             role: company.role,
             logo: company.logo,
+            isApproved: company.isApproved || company.role === "super-admin",
             token: generateToken(company._id),
         });
     } catch (error) {
@@ -262,6 +263,24 @@ export const checkResetToken = async (req, res) => {
         }
 
         res.json({ message: "Token geçerli." });
+    } catch (error) {
+        res.status(500).json({ message: "Sunucu hatası.", error: error.message });
+    }
+};
+
+export const getMe = async (req, res) => {
+    try {
+        if (!req.company) return res.status(404).json({ message: "Kullanıcı bulunamadı." });
+        
+        res.json({
+            _id: req.company._id,
+            name: req.company.name,
+            email: req.company.email,
+            role: req.company.role,
+            logo: req.company.logo,
+            isApproved: req.company.isApproved || req.company.role === "super-admin",
+            isActive: req.company.isActive
+        });
     } catch (error) {
         res.status(500).json({ message: "Sunucu hatası.", error: error.message });
     }

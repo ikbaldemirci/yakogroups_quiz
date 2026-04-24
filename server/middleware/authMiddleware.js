@@ -26,4 +26,12 @@ export const protect = async (req, res, next) => {
     } else if (!token) {
         res.status(401).json({ message: "Yetkisiz erişim, token bulunamadı." });
     }
-}
+};
+
+export const adminOnly = async (req, res, next) => {
+    if (req.company && req.company.role === "super-admin") {
+        next();
+    } else {
+        res.status(403).json({ message: "Bu işlemi yapmak için yetkiniz yok." });
+    }
+};

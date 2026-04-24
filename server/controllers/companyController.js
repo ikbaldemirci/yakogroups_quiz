@@ -111,3 +111,27 @@ export const deactivateCompany = async (req, res) => {
     });
   }
 };
+
+export const approveCompany = async (req, res) => {
+  try {
+    const { isApproved } = req.body;
+    const company = await Company.findByIdAndUpdate(
+      req.params.id,
+      { isApproved },
+      { new: true }
+    );
+
+    if (!company) {
+      return res.status(404).json({
+        message: "Company not found",
+      });
+    }
+
+    res.status(200).json(company);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to approve company",
+      error: error.message,
+    });
+  }
+};
