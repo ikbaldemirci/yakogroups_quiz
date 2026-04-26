@@ -127,6 +127,13 @@ export const approveCompany = async (req, res) => {
       });
     }
 
+    import("../index.js").then(({ io }) => {
+        io.emit("approval-update", {
+            companyId: company._id,
+            isApproved: company.isApproved
+        });
+    }).catch(err => console.error("Socket emit failed", err));
+
     res.status(200).json(company);
   } catch (error) {
     res.status(500).json({

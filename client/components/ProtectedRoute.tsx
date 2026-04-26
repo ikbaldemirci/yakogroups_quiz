@@ -19,23 +19,33 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     useEffect(() => {
         if (!token || role === "super-admin") return;
 
-        const interval = setInterval(async () => {
-            try {
-                const { API_URL } = await import("../utils/config");
-                const res = await fetch(`${API_URL}/api/auth/me`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.isApproved !== isApproved) {
-                        window.location.reload();
-                    }
-                }
-            } catch (err) {}
-        }, 5000);
+        let socket: any = null;
 
-        return () => clearInterval(interval);
+        const connectSocket = async () => {
+            const { API_URL } = await import("../utils/config");
+            const { io } = await import("socket.io-client");
+            
+            socket = io(API_URL);
+
+            socket.on("approval-update", (data: { companyId: string, isApproved: boolean }) => {
+                try {
+                    if (token) {
+                        const payload = JSON.parse(atob(token.split('.')[1]));
+                        if (payload.id === data.companyId && data.isApproved !== isApproved) {
+                            window.location.reload();
+                        }
+                    }
+                } catch (err) {
+                    console.error("Token parse error:", err);
+                }
+            });
+        };
+
+        connectSocket();
+
+        return () => {
+            if (socket) socket.disconnect();
+        };
     }, [token, isApproved, role]);
 
     if (loading || !token) {
