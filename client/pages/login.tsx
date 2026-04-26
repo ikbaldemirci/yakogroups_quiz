@@ -30,7 +30,7 @@ export default function Login() {
                 throw new Error(data.message || "Giriş yapılamadı.");
             }
 
-            login(data.token, data.name, data.role, data.logo);
+            login(data.token, data.name, data.role, data.isApproved, data.logo);
             router.push("/admin");
         } catch (err: any) {
             setError(err.message);

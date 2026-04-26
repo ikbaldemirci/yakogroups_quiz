@@ -111,3 +111,34 @@ export const deactivateCompany = async (req, res) => {
     });
   }
 };
+
+export const approveCompany = async (req, res) => {
+  try {
+    const { isApproved } = req.body;
+    const company = await Company.findByIdAndUpdate(
+      req.params.id,
+      { isApproved },
+      { new: true }
+    );
+
+    if (!company) {
+      return res.status(404).json({
+        message: "Company not found",
+      });
+    }
+
+    import("../index.js").then(({ io }) => {
+        io.emit("approval-update", {
+            companyId: company._id,
+            isApproved: company.isApproved
+        });
+    }).catch(err => console.error("Socket emit failed", err));
+
+    res.status(200).json(company);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to approve company",
+      error: error.message,
+    });
+  }
+};

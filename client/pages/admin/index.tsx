@@ -25,20 +25,33 @@ export default function AdminDashboard() {
   const router = useRouter();
   const { role, companyName, logo, updateLogo } = useAuth();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [companies, setCompanies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchQuizzes = async () => {
+    const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
+        const userRole = localStorage.getItem("role");
         if (!token) return;
 
         const res = await fetch(`${API_URL}/api/quizzes`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        if (!res.ok) throw new Error("Failed to fetch");
+        if (!res.ok) throw new Error("Failed to fetch quizzes");
         const data = await res.json();
         setQuizzes(data);
+
+        if (userRole === "super-admin") {
+            const compRes = await fetch(`${API_URL}/api/companies`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (compRes.ok) {
+                const compData = await compRes.json();
+                setCompanies(compData);
+            }
+        }
+
         setLoading(false);
       } catch (err) {
         console.error(err);
@@ -46,7 +59,7 @@ export default function AdminDashboard() {
       }
     };
 
-    fetchQuizzes();
+    fetchData();
   }, []);
 
   const createSession = async (quizId: string) => {
@@ -146,6 +159,28 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleApproveToggle = async (companyId: string, currentStatus: boolean) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_URL}/api/companies/${companyId}/approve`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ isApproved: !currentStatus })
+      });
+
+      if (!res.ok) throw new Error("Onay durumu güncellenemedi.");
+
+      setCompanies(companies.map(c =>
+        c._id === companyId ? { ...c, isApproved: !currentStatus } : c
+      ));
+    } catch (err: any) {
+      alert("Hata: " + err.message);
+    }
+  };
+
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50 pb-20 font-sans">
@@ -219,9 +254,11 @@ export default function AdminDashboard() {
           ) : role === "super-admin" ? (
             <SuperAdminView
               quizzes={quizzes}
+              companies={companies}
               currentCompanyName={companyName}
               onStartSession={createSession}
               onDelete={deleteQuiz}
+              onApproveToggle={handleApproveToggle}
             />
           ) : (
             <>
